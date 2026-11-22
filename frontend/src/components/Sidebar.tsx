@@ -41,7 +41,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   return (
-    <aside className="w-64 bg-[#101A2B] border-r border-[#26344A] flex flex-col justify-between h-screen fixed left-0 top-0 z-30 select-none">
+    <aside className="w-64 bg-[#101A2B] border-r border-[#26344A] flex flex-col justify-between h-screen fixed left-0 top-0 z-[10002] select-none">
       <div>
         {/* Brand / Logo */}
         <div className="h-16 px-6 flex items-center gap-3 border-b border-[#26344A]">

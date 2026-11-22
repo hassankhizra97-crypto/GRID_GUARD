@@ -27,6 +27,7 @@ import {
   CheckCircle,
 } from 'lucide-react';
 import { LocationNode, PowerLineEdge, Fault, DijkstraRoute } from '../types';
+import { NetworkInspectorPanel } from './NetworkInspectorPanel';
 
 interface KarachiMapProps {
   locations: LocationNode[];
@@ -157,6 +158,17 @@ export const KarachiMap: React.FC<KarachiMapProps> = ({
   const [mapCenter, setMapCenter] = useState<[number, number]>([24.8607, 67.0500]);
   const [mapZoom, setMapZoom] = useState<number>(12);
 
+  // Selected node / edge for side options (Inspector Panel)
+  const [selectedNodeId, setSelectedNodeId] = useState<number | null>(null);
+  const [selectedEdgeId, setSelectedEdgeId] = useState<number | null>(null);
+
+  const selectedNode = selectedNodeId
+    ? locations.find((l) => l.id === selectedNodeId) || null
+    : null;
+  const selectedEdge = selectedEdgeId
+    ? powerLines.find((l) => l.id === selectedEdgeId) || null
+    : null;
+
   // Filter locations
   const filteredLocations = useMemo(() => {
     return locations.filter((loc) => {
@@ -192,9 +204,11 @@ export const KarachiMap: React.FC<KarachiMapProps> = ({
   const getLocationById = (id: number) => locations.find((l) => l.id === id);
 
   return (
-    <div className="relative w-full h-[calc(100vh-100px)] flex flex-col rounded-2xl overflow-hidden border border-[#26344A] bg-[#0B1120] shadow-2xl">
-      {/* Top Filter and Search Control Bar */}
-      <div className="px-5 py-3 bg-[#101A2B]/95 backdrop-blur-md border-b border-[#26344A] z-[1000] flex flex-wrap items-center justify-between gap-3">
+    <div className="relative w-full h-[calc(100vh-100px)] flex rounded-2xl overflow-hidden border border-[#26344A] bg-[#0B1120] shadow-2xl">
+      {/* Main Map View Column */}
+      <div className="flex-1 flex flex-col h-full overflow-hidden relative">
+        {/* Top Filter and Search Control Bar */}
+        <div className="px-5 py-3 bg-[#101A2B]/95 backdrop-blur-md border-b border-[#26344A] z-[1000] flex flex-wrap items-center justify-between gap-3">
         {/* Left: Search Bar */}
         <div className="relative min-w-[260px] flex-1 max-w-sm">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
@@ -312,6 +326,12 @@ export const KarachiMap: React.FC<KarachiMapProps> = ({
                 <Polyline
                   key={`line-${line.id}-${line.isOperational ? 'op' : 'fail'}`}
                   positions={positions}
+                  eventHandlers={{
+                    click: () => {
+                      setSelectedEdgeId(line.id);
+                      setSelectedNodeId(null);
+                    },
+                  }}
                   pathOptions={{
                     color: isFailed ? '#EF4444' : '#22C55E',
                     weight: isFailed ? 4.5 : 3.0,
@@ -413,6 +433,12 @@ export const KarachiMap: React.FC<KarachiMapProps> = ({
                 key={`marker-${loc.id}-${loc.isPowered ? 'pwr' : 'off'}`}
                 position={[loc.latitude, loc.longitude]}
                 icon={markerIcon}
+                eventHandlers={{
+                  click: () => {
+                    setSelectedNodeId(loc.id);
+                    setSelectedEdgeId(null);
+                  },
+                }}
               >
                 <Popup>
                   <div className="p-1 min-w-[250px] text-xs space-y-2">
@@ -557,6 +583,28 @@ export const KarachiMap: React.FC<KarachiMapProps> = ({
           </div>
         </div>
       </div>
+      </div>
+
+      {/* Network Inspector Side Panel — slides in when a node or edge is selected */}
+      <NetworkInspectorPanel
+        selectedNode={selectedNode}
+        selectedEdge={selectedEdge}
+        locations={locations}
+        powerLines={powerLines}
+        onClose={() => {
+          setSelectedNodeId(null);
+          setSelectedEdgeId(null);
+        }}
+        onSimulateLineFailure={(id) => {
+          if (onOpenSimulateModal) {
+            onOpenSimulateModal(id);
+          } else {
+            onSimulateLineFailure(id);
+          }
+        }}
+        onRestoreLine={onRestoreLine}
+        onInspectRoute={onInspectRoute}
+      />
     </div>
   );
 };

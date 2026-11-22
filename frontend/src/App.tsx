@@ -159,8 +159,8 @@ export const App: React.FC = () => {
           activeFaultsCount={activeFaultsCount}
         />
 
-        {/* Page Content View */}
-        <main className="flex-1 p-8">
+        {/* Page Content View — no padding on map page so the map fills edge-to-edge */}
+        <main className={`flex-1 ${activePage === 'map' ? '' : 'p-8'}`}>
           {activePage === 'overview' && (
             <OverviewPage
               stats={stats}

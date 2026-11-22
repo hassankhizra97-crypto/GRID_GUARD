@@ -56,7 +56,12 @@ export const SimulateFailureModal: React.FC<SimulateFailureModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      className="fixed inset-y-0 right-0 left-0 md:left-64 z-[10000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+    >
       <div className="bg-[#151F32] border border-[#26344A] rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         {/* Modal Header */}
         <div className="px-6 py-4 bg-[#101A2B] border-b border-[#26344A] flex items-center justify-between">
