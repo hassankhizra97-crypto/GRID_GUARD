@@ -1,0 +1,81 @@
+@import '@xyflow/react/dist/style.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #0B1120;
+    color: #F1F5F9;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  }
+}
+
+/* Custom modern dark scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0B1120;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #26344A;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3B82F6;
+}
+
+/* React Flow Dark Styling */
+.react-flow__background {
+  background-color: #0B1120 !important;
+}
+
+.react-flow__controls {
+  background: #151F32 !important;
+  border: 1px solid #26344A !important;
+  border-radius: 8px !important;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4) !important;
+}
+
+.react-flow__controls-button {
+  background: #151F32 !important;
+  border-bottom: 1px solid #26344A !important;
+  fill: #94A3B8 !important;
+}
+
+.react-flow__controls-button:hover {
+  background: #101A2B !important;
+  fill: #3B82F6 !important;
+}
+
+.react-flow__edge-path {
+  stroke-width: 2.5px;
+  transition: stroke 0.3s ease, stroke-width 0.3s ease;
+}
+
+/* Pulse animation for active lines */
+@keyframes pulseGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 2px rgba(34, 197, 94, 0.4));
+  }
+  50% {
+    filter: drop-shadow(0 0 8px rgba(34, 197, 94, 0.8));
+  }
+}
+
+.edge-operational {
+  stroke: #22C55E !important;
+  animation: pulseGlow 3s infinite ease-in-out;
+}
+
+.edge-failed {
+  stroke: #EF4444 !important;
+  stroke-dasharray: 6, 6;
+  filter: drop-shadow(0 0 6px rgba(239, 68, 68, 0.7));
+}
