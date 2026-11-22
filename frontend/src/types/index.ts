@@ -44,6 +44,8 @@ export interface PowerLineEdge {
   isOperational: boolean;
   repairCost: number;
   travelCost: number;
+  capacityMW?: number;
+  lengthKM?: number;
 }
 
 export interface Fault {

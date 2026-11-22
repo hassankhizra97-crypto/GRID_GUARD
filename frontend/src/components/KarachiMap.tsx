@@ -36,6 +36,7 @@ interface KarachiMapProps {
   onSimulateLineFailure: (lineId: number) => void;
   onRestoreLine: (lineId: number) => void;
   onInspectRoute: (destinationId: number) => void;
+  onOpenSimulateModal?: (lineId?: number) => void;
 }
 
 // Helper component to smoothly pan/zoom map when searching or selecting location
@@ -147,6 +148,7 @@ export const KarachiMap: React.FC<KarachiMapProps> = ({
   onSimulateLineFailure,
   onRestoreLine,
   onInspectRoute,
+  onOpenSimulateModal,
 }) => {
   const [filterCategory, setFilterCategory] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -231,8 +233,24 @@ export const KarachiMap: React.FC<KarachiMapProps> = ({
           ))}
         </div>
 
-        {/* Right: Layer Toggles & Reset */}
+        {/* Right: Layer Toggles & Action Controls */}
         <div className="flex items-center gap-2">
+          {/* Direct Map Failure Simulation Trigger */}
+          <button
+            onClick={() => {
+              if (onOpenSimulateModal) {
+                onOpenSimulateModal();
+              } else {
+                onSimulateLineFailure(17);
+              }
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-red-600 hover:bg-red-500 text-white shadow-md shadow-red-900/40 border border-red-500/50 transition-all cursor-pointer"
+            title="Simulate Power Line Failure on Karachi Grid"
+          >
+            <AlertTriangle className="w-3.5 h-3.5" />
+            <span>Simulate Failure</span>
+          </button>
+
           <button
             onClick={() => setShowPowerLines(!showPowerLines)}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
@@ -292,15 +310,80 @@ export const KarachiMap: React.FC<KarachiMapProps> = ({
 
               return (
                 <Polyline
-                  key={`line-${line.id}`}
+                  key={`line-${line.id}-${line.isOperational ? 'op' : 'fail'}`}
                   positions={positions}
                   pathOptions={{
                     color: isFailed ? '#EF4444' : '#22C55E',
-                    weight: isFailed ? 3.5 : 2.5,
+                    weight: isFailed ? 4.5 : 3.0,
                     dashArray: isFailed ? '6, 8' : undefined,
-                    opacity: isFailed ? 0.95 : 0.7,
+                    opacity: isFailed ? 0.95 : 0.75,
                   }}
-                />
+                >
+                  <Popup>
+                    <div className="p-1 min-w-[220px] text-xs space-y-2">
+                      <div className="border-b border-[#26344A] pb-1.5">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-mono font-bold text-amber-400">
+                            TRANSMISSION LINE #{line.id}
+                          </span>
+                          <span
+                            className={`text-[9px] font-bold px-1.5 py-0.2 rounded border uppercase ${
+                              line.isOperational
+                                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                                : 'bg-red-500/10 text-red-400 border-red-500/30 animate-pulse'
+                            }`}
+                          >
+                            {line.isOperational ? 'OPERATIONAL' : 'LINE SEVERED'}
+                          </span>
+                        </div>
+                        <h4 className="text-xs font-bold text-[#F1F5F9] mt-1">
+                          {fromLoc.name} &harr; {toLoc.name}
+                        </h4>
+                      </div>
+
+                      <div className="space-y-1 text-[11px] text-[#94A3B8]">
+                        <div className="flex justify-between">
+                          <span>Capacity / Voltage:</span>
+                          <span className="text-slate-200 font-semibold">{line.capacityMW || 25} MW</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Repair Cost:</span>
+                          <span className="text-slate-200 font-semibold">${line.repairCost.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Crew Travel:</span>
+                          <span className="text-slate-200 font-semibold">{line.travelCost} mins</span>
+                        </div>
+                      </div>
+
+                      <div className="pt-2 border-t border-[#26344A] flex gap-2">
+                        {line.isOperational ? (
+                          <button
+                            onClick={() => {
+                              if (onOpenSimulateModal) {
+                                onOpenSimulateModal(line.id);
+                              } else {
+                                onSimulateLineFailure(line.id);
+                              }
+                            }}
+                            className="w-full py-1.5 px-2 bg-red-600 hover:bg-red-500 text-white rounded font-bold text-[10px] flex items-center justify-center gap-1.5 transition-all shadow-md"
+                          >
+                            <AlertTriangle className="w-3.5 h-3.5" />
+                            <span>Simulate Line Break</span>
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => onRestoreLine(line.id)}
+                            className="w-full py-1.5 px-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded font-bold text-[10px] flex items-center justify-center gap-1.5 transition-all shadow-md"
+                          >
+                            <Zap className="w-3.5 h-3.5" />
+                            <span>Restore Power Line</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </Popup>
+                </Polyline>
               );
             })}
 
@@ -320,14 +403,19 @@ export const KarachiMap: React.FC<KarachiMapProps> = ({
           {/* 3. Geographical Location Markers */}
           {filteredLocations.map((loc) => {
             const markerIcon = createCustomMarkerIcon(loc.type, loc.isPowered, loc.criticality);
+            const connectedLines = powerLines.filter(
+              (l) => l.fromLocationId === loc.id || l.toLocationId === loc.id
+            );
+            const operationalConnected = connectedLines.filter((l) => l.isOperational);
+
             return (
               <Marker
-                key={loc.id}
+                key={`marker-${loc.id}-${loc.isPowered ? 'pwr' : 'off'}`}
                 position={[loc.latitude, loc.longitude]}
                 icon={markerIcon}
               >
                 <Popup>
-                  <div className="p-1 min-w-[240px] text-xs space-y-2">
+                  <div className="p-1 min-w-[250px] text-xs space-y-2">
                     {/* Header */}
                     <div className="border-b border-[#26344A] pb-2">
                       <div className="flex items-center justify-between">
@@ -338,7 +426,7 @@ export const KarachiMap: React.FC<KarachiMapProps> = ({
                           className={`text-[9px] font-bold px-1.5 py-0.2 rounded border uppercase ${
                             loc.isPowered
                               ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-                              : 'bg-red-500/10 text-red-400 border-red-500/30'
+                              : 'bg-red-500/10 text-red-400 border-red-500/30 animate-pulse'
                           }`}
                         >
                           {loc.isPowered ? 'ENERGIZED' : 'OUTAGE'}
@@ -376,6 +464,12 @@ export const KarachiMap: React.FC<KarachiMapProps> = ({
                           {loc.population > 0 ? `${loc.population.toLocaleString()} residents` : 'Infrastructure Hub'}
                         </span>
                       </div>
+                      <div className="flex justify-between">
+                        <span className="text-[#94A3B8]">Connected Feeders:</span>
+                        <span className="font-semibold text-slate-200">
+                          {operationalConnected.length}/{connectedLines.length} Operational
+                        </span>
+                      </div>
                       <div className="flex justify-between font-mono text-[10px] text-slate-400 pt-1 border-t border-[#26344A]/40">
                         <span>Coordinates:</span>
                         <span>
@@ -385,14 +479,31 @@ export const KarachiMap: React.FC<KarachiMapProps> = ({
                     </div>
 
                     {/* Actions */}
-                    <div className="pt-2 border-t border-[#26344A] flex gap-2">
-                      <button
-                        onClick={() => onInspectRoute(loc.id)}
-                        className="flex-1 py-1.5 px-2 bg-blue-600 hover:bg-blue-500 text-white rounded font-bold text-[10px] flex items-center justify-center gap-1 transition-all"
-                      >
-                        <Navigation className="w-3 h-3" />
-                        <span>Dijkstra Route</span>
-                      </button>
+                    <div className="pt-2 border-t border-[#26344A] flex flex-col gap-1.5">
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => onInspectRoute(loc.id)}
+                          className="flex-1 py-1.5 px-2 bg-blue-600 hover:bg-blue-500 text-white rounded font-bold text-[10px] flex items-center justify-center gap-1 transition-all"
+                        >
+                          <Navigation className="w-3 h-3" />
+                          <span>Dijkstra Route</span>
+                        </button>
+                        {operationalConnected.length > 0 && (
+                          <button
+                            onClick={() => {
+                              if (onOpenSimulateModal) {
+                                onOpenSimulateModal(operationalConnected[0].id);
+                              } else {
+                                onSimulateLineFailure(operationalConnected[0].id);
+                              }
+                            }}
+                            className="flex-1 py-1.5 px-2 bg-red-600/90 hover:bg-red-600 text-white rounded font-bold text-[10px] flex items-center justify-center gap-1 transition-all"
+                          >
+                            <AlertTriangle className="w-3 h-3" />
+                            <span>Simulate Line Break</span>
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </Popup>

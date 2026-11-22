@@ -40,6 +40,7 @@ export const App: React.FC = () => {
   });
 
   const [activeDijkstraRoute, setActiveDijkstraRoute] = useState<DijkstraRoute | null>(null);
+  const [modalInitialLineId, setModalInitialLineId] = useState<number | undefined>(undefined);
   const [isSimulateModalOpen, setIsSimulateModalOpen] = useState<boolean>(false);
   const [searchValue, setSearchValue] = useState<string>('');
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'alert' | 'info' } | null>(null);
@@ -147,7 +148,10 @@ export const App: React.FC = () => {
         {/* Top Header */}
         <Header
           activePage={activePage}
-          onSimulateClick={() => setIsSimulateModalOpen(true)}
+          onSimulateClick={() => {
+            setModalInitialLineId(undefined);
+            setIsSimulateModalOpen(true);
+          }}
           onUndoClick={handleUndo}
           canUndo={canUndo}
           searchValue={searchValue}
@@ -165,7 +169,10 @@ export const App: React.FC = () => {
               faults={faults}
               incidentHistory={incidentHistory}
               onNavigate={setActivePage}
-              onSimulateClick={() => setIsSimulateModalOpen(true)}
+              onSimulateClick={() => {
+                setModalInitialLineId(undefined);
+                setIsSimulateModalOpen(true);
+              }}
             />
           )}
 
@@ -178,6 +185,10 @@ export const App: React.FC = () => {
               onSimulateLineFailure={(id) => handleSimulateFailure(id, 3, 60)}
               onRestoreLine={handleRestoreLine}
               onInspectRoute={handleInspectRoute}
+              onOpenSimulateModal={(lineId) => {
+                setModalInitialLineId(lineId);
+                setIsSimulateModalOpen(true);
+              }}
             />
           )}
 
@@ -236,9 +247,13 @@ export const App: React.FC = () => {
       {/* Simulate Line Failure Modal */}
       <SimulateFailureModal
         isOpen={isSimulateModalOpen}
-        onClose={() => setIsSimulateModalOpen(false)}
+        onClose={() => {
+          setIsSimulateModalOpen(false);
+          setModalInitialLineId(undefined);
+        }}
         powerLines={powerLines}
         locations={locations}
+        initialLineId={modalInitialLineId}
         onConfirm={handleSimulateFailure}
       />
 
