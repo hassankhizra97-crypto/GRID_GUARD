@@ -8,6 +8,7 @@ import { FaultManagementPage } from './pages/FaultManagementPage';
 import { RepairSchedulingPage } from './pages/RepairSchedulingPage';
 import { IncidentHistoryPage } from './pages/IncidentHistoryPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { KarachiMap } from './components/KarachiMap';
 import { api } from './services/api';
 import {
   ActivePage,
@@ -16,6 +17,7 @@ import {
   Fault,
   IncidentEvent,
   SimulationStats,
+  DijkstraRoute,
 } from './types';
 import { CheckCircle2, AlertTriangle, Info, X } from 'lucide-react';
 
@@ -26,10 +28,10 @@ export const App: React.FC = () => {
   const [faults, setFaults] = useState<Fault[]>([]);
   const [incidentHistory, setIncidentHistory] = useState<IncidentEvent[]>([]);
   const [stats, setStats] = useState<SimulationStats>({
-    totalLocations: 14,
-    operationalLines: 18,
+    totalLocations: 44,
+    operationalLines: 61,
     failedLines: 0,
-    totalLines: 18,
+    totalLines: 61,
     activeFaults: 0,
     affectedPopulation: 0,
     criticalFacilitiesAffected: 0,
@@ -37,6 +39,7 @@ export const App: React.FC = () => {
     networkHealthPercentage: 100,
   });
 
+  const [activeDijkstraRoute, setActiveDijkstraRoute] = useState<DijkstraRoute | null>(null);
   const [isSimulateModalOpen, setIsSimulateModalOpen] = useState<boolean>(false);
   const [searchValue, setSearchValue] = useState<string>('');
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'alert' | 'info' } | null>(null);
@@ -120,8 +123,10 @@ export const App: React.FC = () => {
     await refreshState();
   };
 
-  const handleInspectRoute = (_destId: number) => {
-    setActivePage('repairs');
+  const handleInspectRoute = (destId: number) => {
+    const route = api.getDijkstraRoute(destId);
+    setActiveDijkstraRoute(route);
+    setActivePage('map');
   };
 
   const activeFaultsCount = faults.filter((f) => f.status !== 'REPAIRED').length;
@@ -161,6 +166,18 @@ export const App: React.FC = () => {
               incidentHistory={incidentHistory}
               onNavigate={setActivePage}
               onSimulateClick={() => setIsSimulateModalOpen(true)}
+            />
+          )}
+
+          {activePage === 'map' && (
+            <KarachiMap
+              locations={locations}
+              powerLines={powerLines}
+              faults={faults}
+              activeDijkstraRoute={activeDijkstraRoute}
+              onSimulateLineFailure={(id) => handleSimulateFailure(id, 3, 60)}
+              onRestoreLine={handleRestoreLine}
+              onInspectRoute={handleInspectRoute}
             />
           )}
 

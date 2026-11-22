@@ -32,7 +32,9 @@ export const Header: React.FC<HeaderProps> = ({
   const getPageInfo = (): { title: string; breadcrumb: string } => {
     switch (activePage) {
       case 'overview':
-        return { title: 'Grid Operations Overview', breadcrumb: 'Dashboard / Overview' };
+        return { title: 'Karachi Grid Operations Overview', breadcrumb: 'Dashboard / Overview' };
+      case 'map':
+        return { title: 'Karachi Geographical Power Grid Map', breadcrumb: 'GIS / Karachi Interactive Map' };
       case 'network':
         return { title: 'Interactive Power Transmission Network', breadcrumb: 'Topology / Graph Analysis' };
       case 'faults':

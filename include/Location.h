@@ -11,7 +11,8 @@ enum FacilityType {
     HOSPITAL,
     UNIVERSITY,
     RESIDENTIAL,
-    COMMERCIAL
+    COMMERCIAL,
+    INDUSTRIAL
 };
 
 enum CriticalityLevel {
@@ -29,24 +30,32 @@ public:
     int population;
     CriticalityLevel criticality;
     bool isPowered;
+    double latitude;
+    double longitude;
+    std::string area;
 
     Location()
         : id(-1), name(""), type(RESIDENTIAL), population(0),
-          criticality(LOW), isPowered(true) {}
+          criticality(LOW), isPowered(true),
+          latitude(24.8607), longitude(67.0011), area("Karachi") {}
 
     Location(int id, const std::string& name, FacilityType type,
-             int population, CriticalityLevel criticality)
+             int population, CriticalityLevel criticality,
+             double lat = 24.8607, double lon = 67.0011,
+             const std::string& areaName = "Karachi")
         : id(id), name(name), type(type), population(population),
-          criticality(criticality), isPowered(true) {}
+          criticality(criticality), isPowered(true),
+          latitude(lat), longitude(lon), area(areaName) {}
 
     std::string getTypeString() const {
         switch (type) {
-            case POWER_STATION: return "Main Power Station";
-            case SUBSTATION:    return "Substation";
+            case POWER_STATION: return "Simulated Supply Hub";
+            case SUBSTATION:    return "Simulated Dist Node";
             case HOSPITAL:      return "Hospital";
             case UNIVERSITY:    return "University";
             case RESIDENTIAL:   return "Residential Area";
             case COMMERCIAL:    return "Commercial Area";
+            case INDUSTRIAL:    return "Industrial Zone";
             default:            return "Unknown";
         }
     }
@@ -67,11 +76,12 @@ public:
 
     void display() const {
         std::cout << "[" << std::setw(2) << id << "] "
-                  << std::setw(28) << std::left << name
-                  << " | Type: " << std::setw(20) << getTypeString()
+                  << std::setw(32) << std::left << name
+                  << " | " << std::setw(18) << area
+                  << " | " << std::setw(18) << getTypeString()
                   << " | Pop: " << std::setw(6) << population
                   << " | Crit: " << std::setw(8) << getCriticalityString()
-                  << " | Power: " << (isPowered ? "ONLINE (ON)" : "OFFLINE (OUT)")
+                  << " | " << (isPowered ? "ONLINE" : "OFFLINE")
                   << "\n";
     }
 };

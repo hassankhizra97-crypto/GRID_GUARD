@@ -18,7 +18,7 @@ struct RoadEdgeNode {
 // Independent Road Network for Repair Crew Dispatch using Dijkstra's Algorithm
 class RoadNetwork {
 private:
-    static const int MAX_VERTICES = 64;
+    static const int MAX_VERTICES = 128;
     RoadEdgeNode* adjList[MAX_VERTICES];
     bool vertexExists[MAX_VERTICES];
     int vertexCount;

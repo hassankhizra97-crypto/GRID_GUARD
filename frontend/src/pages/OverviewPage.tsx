@@ -92,14 +92,14 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
               </span>
               <span className="text-xs font-semibold uppercase tracking-wider text-emerald-400">
-                SCADA Network Online &bull; Municipal City Grid Active
+                SCADA Network Online &bull; Karachi Megacity Power Grid Active
               </span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-[#F1F5F9] tracking-tight">
-              Grid Operations Overview
+              Karachi Grid Operations Overview
             </h1>
             <p className="text-sm text-[#94A3B8] mt-1 max-w-2xl">
-              Monitor real-time network health, isolate line breaks using Breadth-First Search,
+              Monitor real-time network health across Karachi, isolate line breaks using Breadth-First Search,
               triage emergency work orders via Max-Heap, and dispatch restoration crews along
               optimal Dijkstra routes.
             </p>
@@ -107,11 +107,18 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
 
           <div className="flex items-center gap-3">
             <button
+              onClick={() => onNavigate('map')}
+              className="px-4 py-2.5 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 text-xs font-semibold rounded-lg flex items-center gap-2 transition-all shadow-sm"
+            >
+              <MapPin className="w-4 h-4 text-emerald-400" />
+              <span>Karachi Map</span>
+            </button>
+            <button
               onClick={() => onNavigate('network')}
               className="px-4 py-2.5 bg-[#101A2B] hover:bg-[#151F32] border border-[#26344A] hover:border-slate-500 text-slate-200 text-xs font-semibold rounded-lg flex items-center gap-2 transition-all"
             >
               <Zap className="w-4 h-4 text-amber-400" />
-              <span>Interactive Graph</span>
+              <span>Network Graph</span>
             </button>
             <button
               onClick={onSimulateClick}
