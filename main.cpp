@@ -31,7 +31,7 @@ void printMainMenu() {
     std::cout << "                                     GRIDGUARD                                          \n";
     std::cout << "             Karachi Power Grid Fault Detection & Restoration Simulator                 \n";
     std::cout << "========================================================================================\n";
-    std::cout << " 1. Display Power Network                  11. Search Fault Record by ID\n";
+    std::cout << " 1. Display Power Network                  11. Search Fault Record by ID (Hash Table)\n";
     std::cout << " 2. View All Locations                     12. Sort Fault Records\n";
     std::cout << " 3. Simulate Power Line Failure            13. Display Incident History (Chronological)\n";
     std::cout << " 4. View Affected Locations (Outages)      14. View Incident History Backward (Reverse)\n";
@@ -45,6 +45,7 @@ void printMainMenu() {
     std::cout << "21. [SPECIAL] Run Automated Test Suite (All 10 Academic Validation Tests)\n";
     std::cout << "22. [SPECIAL] Display Hash Table Collision & Bucket Diagnostics\n";
     std::cout << "23. [SPECIAL] Display Undo Stack Contents\n";
+    std::cout << "24. [SPECIAL] Compare Linear and Binary Fault Search\n";
     std::cout << "========================================================================================\n";
 }
 
@@ -62,7 +63,7 @@ int main(int argc, char* argv[]) {
 
     while (running) {
         printMainMenu();
-        int choice = getValidInt("Select an option (1-23): ", 1, 23);
+        int choice = getValidInt("Select an option (1-24): ", 1, 24);
 
         switch (choice) {
             case 1:
@@ -121,7 +122,7 @@ int main(int argc, char* argv[]) {
                 break;
             }
             case 12: {
-                std::cout << "\n--- Sort Fault Records (Manual QuickSort) ---\n";
+                std::cout << "\n--- Sort Fault Records (Manual Algorithms) ---\n";
                 std::cout << "1. Sort by Priority Score (Descending)\n";
                 std::cout << "2. Sort by Severity Level (Descending)\n";
                 std::cout << "3. Sort by Population Affected (Descending)\n";
@@ -131,8 +132,9 @@ int main(int argc, char* argv[]) {
                 if (sChoice == 2) crit = SORT_BY_SEVERITY;
                 else if (sChoice == 3) crit = SORT_BY_POPULATION;
                 else if (sChoice == 4) crit = SORT_BY_OUTAGE_DURATION;
-
-                sim.sortAndDisplayFaults(crit, false);
+                std::cout << "Algorithm: 1. Bubble  2. Selection  3. Insertion  4. Quick  5. Merge\n";
+                int algorithm = getValidInt("Select algorithm (1-5): ", 1, 5);
+                sim.sortAndDisplayFaultsAlgo(static_cast<SortAlgorithm>(algorithm), crit, false);
                 break;
             }
             case 13:
@@ -184,6 +186,11 @@ int main(int argc, char* argv[]) {
             case 23:
                 sim.displayUndoHistory();
                 break;
+            case 24: {
+                int fId = getValidInt("Enter Fault ID to compare searches: ", 1, 9999);
+                sim.demonstrateSearchComparison(fId);
+                break;
+            }
         }
 
         if (running) {

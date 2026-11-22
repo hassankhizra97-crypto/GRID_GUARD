@@ -9,6 +9,9 @@
 #include "Stack.h"
 #include "CustomVector.h"
 #include "Sorting.h"
+#include "SearchAlgorithms.h"
+#include "CircularQueue.h"
+#include "ArrayStack.h"
 #include <string>
 
 class Simulation {
@@ -19,7 +22,9 @@ private:
     HashTable<int, Location> locationTable;
     HashTable<int, Fault> faultTable;
     DoublyLinkedList<IncidentEvent> incidentHistory;
-    Stack<UndoAction> undoStack;
+    // The undo log is an array-based manual stack. Every state-changing
+    // operation pushes enough information for its inverse operation.
+    ArrayStack<UndoAction> arrayUndoStack;
 
     int nextFaultId;
     int nextEventId;
@@ -74,15 +79,28 @@ public:
     bool findRepairCrewRoute(int targetLocationId) const;
     void sortAndDisplayFaults(SortCriterion criterion, bool ascending = false);
 
+    // All Sorting Algorithms demonstration
+    void sortAndDisplayFaultsAlgo(SortAlgorithm algo, SortCriterion criterion, bool ascending = false);
+
+    // Search demonstrations
+    void demonstrateLinearSearch(int targetFaultId) const;
+    void demonstrateBinarySearch(int targetFaultId) const;
+    void demonstrateSearchComparison(int targetFaultId) const;
+
     // Status queries
     void displayOutageReportSummary() const;
     void displayCriticalFacilitiesStatus() const;
+
+    // Demonstrate circular queue behavior
+    void demonstrateCircularQueue() const;
+    // Demonstrate array stack behavior
+    void demonstrateArrayStack() const;
 
     // Getters for automated tests
     int getMainStationId() const { return mainPowerStationId; }
     int getPendingFaultCount() const { return repairQueue.size(); }
     int getIncidentCount() const { return incidentHistory.size(); }
-    int getUndoStackSize() const { return undoStack.size(); }
+    int getUndoStackSize() const { return arrayUndoStack.size(); }
     const Graph& getPowerGrid() const { return powerGrid; }
     const RoadNetwork& getRoadNetwork() const { return roadNetwork; }
     const MaxHeap& getRepairQueue() const { return repairQueue; }

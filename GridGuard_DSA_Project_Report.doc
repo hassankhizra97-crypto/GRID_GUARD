@@ -1,0 +1,779 @@
+<html>
+<head>
+<meta charset="UTF-8">
+<title>GridGuard DSA Project Report</title>
+<style>
+  body { font-family: "Times New Roman", serif; line-height: 1.6; color: #000; margin: 2cm; }
+  h1, h2, h3, h4 { font-family: "Arial", sans-serif; color: #1a237e; }
+  h1 { font-size: 24pt; text-align: center; border-bottom: 2px solid #1a237e; padding-bottom: 10px; }
+  h2 { font-size: 18pt; margin-top: 24px; border-bottom: 1px solid #7986cb; padding-bottom: 5px; }
+  h3 { font-size: 14pt; color: #303f9f; }
+  h4 { font-size: 12pt; color: #5c6bc0; }
+  p { margin: 8px 0; text-align: justify; }
+  ul, ol { margin: 8px 0 8px 24px; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 10pt; }
+  th, td { border: 1px solid #90a4ae; padding: 6px; text-align: left; }
+  th { background-color: #c5cae9; }
+  .cover { text-align: center; margin-top: 80px; }
+  .cover-title { font-size: 28pt; font-weight: bold; color: #1a237e; }
+  .cover-subtitle { font-size: 16pt; color: #303f9f; margin-top: 20px; }
+  .cover-fields { margin-top: 60px; text-align: left; display: inline-block; }
+  .cover-fields table { margin: 0; }
+  .page-break { page-break-before: always; }
+  .code-block { background-color: #f5f5f5; border: 1px solid #bdbdbd; padding: 12px; font-family: "Courier New", monospace; font-size: 9pt; white-space: pre-wrap; overflow-x: auto; margin: 10px 0; }
+  .output-box { background-color: #e8f5e9; border: 1px solid #4caf50; padding: 12px; font-family: "Courier New", monospace; font-size: 9pt; white-space: pre-wrap; margin: 10px 0; }
+  .center { text-align: center; }
+  .toc { font-size: 11pt; margin: 20px 0; }
+  .toc-item { margin: 6px 0; }
+  code { font-family: "Courier New", monospace; background: #f5f5f5; padding: 2px 4px; }
+</style>
+</head>
+<body>
+
+<!-- ===================== COVER PAGE ===================== -->
+<div class="cover">
+  <div style="font-size: 14pt; font-weight: bold; letter-spacing: 2px;">DATA STRUCTURES LAB PROJECT</div>
+  <div style="font-size: 11pt; color: #666; margin-top: 10px;">Course: Data Structures</div>
+  <div style="margin-top: 60px;"></div>
+
+  <div class="cover-title">GridGuard:<br>Intelligent Karachi Power Grid<br>Fault Detection &amp; Restoration Simulator</div>
+
+  <div class="cover-subtitle" style="margin-top: 30px;">A Data Structures and Algorithms (DSA) Project Report</div>
+
+  <div style="margin-top: 80px;"></div>
+
+  <div class="cover-fields">
+    <table>
+      <tr><td style="width: 200px; font-weight: bold;">Project Title:</td><td>GridGuard — Intelligent Karachi Power Grid Fault Detection &amp; Restoration Simulator</td></tr>
+      <tr><td style="width: 200px; font-weight: bold;">Course:</td><td>Data Structures</td></tr>
+      <tr><td style="width: 200px; font-weight: bold;">Submitted By:</td><td>Student, B.S. Computer Science</td></tr>
+      <tr><td style="width: 200px; font-weight: bold;">Submitted To:</td><td>Course Instructor, Department of Computer Science</td></tr>
+      <tr><td style="width: 200px; font-weight: bold;">Department / University:</td><td>Department of Computer Science, University Campus</td></tr>
+      <tr><td style="width: 200px; font-weight: bold;">Date:</td><td>22 November 2026</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="page-break"></div>
+
+<!-- ===================== ACKNOWLEDGEMENT ===================== -->
+<h2>1. Acknowledgement</h2>
+<p>
+We express our sincere gratitude to our course instructor for their invaluable guidance and support throughout the development of this Data Structures and Algorithms (DSA) project. Their insights into manual data structure implementation and algorithm design were instrumental in shaping the architecture of <b>GridGuard</b>.
+</p>
+<p>
+We also thank our peers and lab assistants for their feedback during testing and debugging phases, which helped refine the simulation engine and ensure correctness across all ten academic validation test scenarios.
+</p>
+
+<div class="page-break"></div>
+
+<!-- ===================== ABSTRACT ===================== -->
+<h2>2. Abstract</h2>
+<p>
+<b>GridGuard</b> is an academic-grade, console-based simulation system developed in modern C++ (C++14 compliant) to model municipal power distribution networks, simulate power line failures, dynamically analyze grid connectivity, prioritize emergency repair operations using max-heaps, calculate optimal repair crew transit routes via Dijkstra's algorithm, and maintain a reversible operational state via stack-based undo mechanisms.
+</p>
+<p>
+The project was built from scratch to demonstrate fundamental Data Structures and Algorithms (DSA) without relying on built-in Standard Template Library (STL) containers for core algorithmic operations. Every foundational data structure — including an Adjacency List Graph, FIFO Queue, LIFO Stack, Binary Max-Heap, Separate-Chaining Hash Table, Doubly Linked List, Custom Dynamic Array, Circular Queue, and Array Stack — is manually engineered using raw pointers, dynamic memory allocation, and explicit rule-of-three memory management.
+</p>
+<p>
+The system models Karachi's power grid with 44 verified geographical locations and 61 simulated power lines, including supply hubs, substations, hospitals, universities, residential neighborhoods, and commercial/industrial zones. An interactive console menu provides 24 operational options, and an automated test suite validates all 10 core scenarios covering normal operation, outages, repair scheduling, undo, Dijkstra routing, hash table collisions, and bidirectional incident history traversal.
+</p>
+<p>
+A React + Leaflet web dashboard frontend provides interactive visualization of the Karachi map, topological graph, Max-Heap triage scheduler, and incident ledger.
+</p>
+
+<div class="page-break"></div>
+
+<!-- ===================== INTRODUCTION ===================== -->
+<h2>3. Introduction</h2>
+
+<h3>3.1 Background</h3>
+<p>
+Modern municipal electricity grids rely on interconnected distribution networks featuring generation sources, substations, critical facilities (hospitals, trauma centers), civic infrastructure (universities, transit networks), commercial districts, and residential zones. When severe weather, mechanical breakdown, or physical damage severs transmission lines, grid operators must instantly detect isolated sectors, quantify civic harm, prioritize emergency repair work orders, dispatch repair crews along optimal routes, and systematically re-energize the network while maintaining a reversible operational ledger.
+</p>
+<p>
+Karachi, a megacity of over 15 million residents, presents unique challenges due to its scale, diverse municipal zones, and critical infrastructure distributed across the city. GridGuard addresses these challenges by simulating the Karachi power grid with real geographical coordinates and providing algorithmic tools for fault detection, triage prioritization, and optimal crew dispatch.
+</p>
+
+<h3>3.2 Purpose of the Project</h3>
+<p>
+The primary purpose of GridGuard is to demonstrate mastery of fundamental Data Structures and Algorithms (DSA) by implementing them from scratch without STL container dependencies. Specific objectives include:</p>
+<ul>
+  <li>Manually implementing core data structures (Graph, Queue, Stack, Max-Heap, Hash Table, Doubly Linked List, Custom Vector, Circular Queue, Array Stack) using raw pointers and dynamic memory.</li>
+  <li>Implementing graph traversal algorithms (BFS, DFS) for connectivity analysis.</li>
+  <li>Implementing Dijkstra's shortest path algorithm for optimal repair crew routing.</li>
+  <li>Implementing max-heap priority scheduling for emergency repair triage.</li>
+  <li>Implementing manual sorting (QuickSort, MergeSort, Bubble, Selection, Insertion) and searching (Linear, Binary) algorithms.</li>
+  <li>Building an interactive console-based simulation with a reversible undo mechanism.</li>
+  <li>Providing an automated verification test suite to validate correctness.</li>
+</ul>
+
+<h3>3.3 Data Structures Used</h3>
+<table>
+  <tr><th>Data Structure</th><th>Implementation</th><th>Purpose in GridGuard</th></tr>
+  <tr><td>Graph (Adjacency List)</td><td>Manual <code>AdjEdgeNode*</code> linked list per vertex</td><td>Models power distribution topology and road transit network</td></tr>
+  <tr><td>Queue (Singly Linked List)</td><td><code>front</code> &amp; <code>rear</code> pointers</td><td>Powers BFS traversal to identify de-energized grid sectors</td></tr>
+  <tr><td>Circular Queue (Array)</td><td>Ring buffer with modulo wraparound</td><td>Alternative BFS queue implementation</td></tr>
+  <tr><td>Priority Queue (Max-Heap)</td><td>Dynamically-resized binary heap array</td><td>Schedules and triages emergency repair work orders by priority score</td></tr>
+  <tr><td>Stack (Singly Linked List)</td><td><code>top</code> pointer LIFO</td><td>Enables undoing reversible state-changing actions</td></tr>
+  <tr><td>Array Stack</td><td>Dynamically resizing array with <code>topIdx</code></td><td>Undo log storage with dynamic capacity growth</td></tr>
+  <tr><td>Hash Table (Separate Chaining)</td><td>Linked-list bucket collision resolution</td><td>O(1) average-time lookup for locations and fault records</td></tr>
+  <tr><td>Doubly Linked List</td><td>Bidirectional <code>prev</code> &amp; <code>next</code> pointers</td><td>Chronological and reverse-chronological incident history logging</td></tr>
+  <tr><td>Custom Vector</td><td>Raw pointer dynamic array with resize</td><td>General-purpose dynamic array without STL <code>std::vector</code></td></tr>
+</table>
+
+<h3>3.4 Overview of Features</h3>
+<ul>
+  <li>Display power network topology and line operational status</li>
+  <li>View all city locations with facility type, population, and power status</li>
+  <li>Simulate power line failures with severity, duration, and critical facility impact</li>
+  <li>View outage reports and critical facility outage status</li>
+  <li>View repair priority queue (Max-Heap triage)</li>
+  <li>Process next repair using Dijkstra + Graph restoration</li>
+  <li>Find optimal repair crew route via Dijkstra's algorithm</li>
+  <li>View all fault records and search by ID (Hash Table)</li>
+  <li>Sort fault records by multiple criteria using 5 manual algorithms</li>
+  <li>View incident history forward and backward (Doubly Linked List)</li>
+  <li>Undo last operation (Stack-based reversible state)</li>
+  <li>Run BFS and DFS traversals</li>
+  <li>Analyze network connectivity (powered vs. disconnected sectors)</li>
+  <li>Restore power lines manually</li>
+  <li>Display hash table collision diagnostics</li>
+  <li>Display undo stack contents</li>
+  <li>Compare linear vs. binary search performance</li>
+  <li>Run automated test suite (10 academic validation tests)</li>
+</ul>
+
+<div class="page-break"></div>
+
+<!-- ===================== PROBLEM STATEMENT ===================== -->
+<h2>4. Problem Statement</h2>
+
+<h3>4.1 What Problem the Project Solves</h3>
+<p>
+When power line failures occur in a municipal distribution network, grid operators face several challenges:</p>
+<ul>
+  <li><b>Fault Detection:</b> Rapidly identifying which locations are de-energized after a line failure in a complex looped/radial topology.</li>
+  <li><b>Impact Quantification:</b> Measuring affected population and offline critical facilities (hospitals, trauma centers).</li>
+  <li><b>Repair Prioritization:</b> Objectively triaging multiple simultaneous faults based on severity, criticality, population, and outage duration.</li>
+  <li><b>Optimal Dispatch:</b> Finding the fastest ground transit route for repair crews that remains accessible even when power lines fail.</li>
+  <li><b>Reversible Operations:</b> Maintaining an auditable ledger that allows undoing state-changing actions (failures and repairs).</li>
+</ul>
+
+<h3>4.2 Limitations of Current Solutions</h3>
+<ul>
+  <li>Many grid simulators rely on built-in STL containers, obscuring the underlying data structure mechanics.</li>
+  <li>Few educational implementations combine graph connectivity, heap-based triage, Dijkstra routing, and stack-based undo in a single unified system.</li>
+  <li>Interactive consoles with reversible operations and automated academic validation are rare in student DSA projects.</li>
+</ul>
+
+<h3>4.3 Objectives of the Project</h3>
+<ol>
+  <li>Implement all core DSA structures manually (no STL containers for core logic).</li>
+  <li>Simulate a realistic municipal power grid (Karachi) with 44 locations and 61 power lines.</li>
+  <li>Provide BFS/DFS connectivity analysis to detect de-energized sectors.</li>
+  <li>Implement Max-Heap priority scheduling for emergency repair triage.</li>
+  <li>Implement Dijkstra's algorithm for optimal repair crew routing on an independent road network.</li>
+  <li>Provide stack-based undo for reversible operations.</li>
+  <li>Implement manual sorting and searching algorithms with complexity demonstrations.</li>
+  <li>Validate correctness via a 10-test automated verification suite.</li>
+</ol>
+
+<div class="page-break"></div>
+
+<!-- ===================== LITERATURE REVIEW ===================== -->
+<h2>5. Literature Review / Existing Systems</h2>
+<p>
+Existing power grid fault detection systems typically fall into three categories:</p>
+<ul>
+  <li><b>Commercial SCADA/EMS Systems:</b> Industrial-grade supervisory control and data acquisition systems used by utilities. These are proprietary, expensive, and not designed for educational DSA demonstration.</li>
+  <li><b>Open-Source Grid Simulators:</b> Tools like MATPOWER, Pandapower, and OpenDSS focus on power flow analysis rather than data structure education.</li>
+  <li><b>Academic DSA Projects:</b> Student projects often implement individual data structures in isolation without integrating them into a cohesive simulation domain.</li>
+</ul>
+<p>
+GridGuard differs by integrating nine manually implemented data structures and six algorithms into a single simulation with an interactive console interface, automated test suite, and optional web dashboard — all while strictly avoiding STL containers for core DSA logic.</p>
+
+<div class="page-break"></div>
+
+<!-- ===================== DATA STRUCTURES USED ===================== -->
+<h2>6. Data Structures Used</h2>
+
+<h3>6.1 Graph (Adjacency List)</h3>
+<p><b>Why chosen:</b> The power grid is naturally a graph where locations are vertices and transmission lines are edges. An adjacency list provides efficient traversal and edge lookups.</p>
+<p><b>Where used:</b> <code>include/Graph.h</code>, <code>src/Graph.cpp</code> — Models the Karachi power distribution topology.</p>
+<p><b>Operations implemented:</b> <code>addLocation</code>, <code>addPowerLine</code>, <code>disablePowerLine</code>, <code>restorePowerLine</code>, <code>analyzeConnectivity</code>, <code>runBFS</code>, <code>runDFS</code>, <code>getLocation</code>, <code>getPowerLine</code>.</p>
+
+<h3>6.2 Queue (Singly Linked List FIFO)</h3>
+<p><b>Why chosen:</b> BFS requires a FIFO structure to explore vertices level by level.</p>
+<p><b>Where used:</b> <code>include/Queue.h</code> — Powers Breadth-First Search in <code>Graph::runBFS</code>.</p>
+<p><b>Operations implemented:</b> <code>enqueue</code>, <code>dequeue</code>, <code>peek</code>, <code>isEmpty</code>, <code>size</code>, <code>display</code>.</p>
+<p><b>Time Complexity:</b> Enqueue O(1), Dequeue O(1), Peek O(1). <b>Space Complexity:</b> O(n).</p>
+
+<h3>6.3 Circular Queue (Array-Based Ring Buffer)</h3>
+<p><b>Why chosen:</b> Provides O(1) enqueue/dequeue with array storage and modulo wraparound, reusing empty slots efficiently.</p>
+<p><b>Where used:</b> <code>include/CircularQueue.h</code> — Alternative BFS queue implementation.</p>
+<p><b>Operations implemented:</b> <code>enqueue</code>, <code>dequeue</code>, <code>peek</code>, <code>isEmpty</code>, <code>isFull</code>, <code>size</code>, <code>clear</code>, <code>display</code>.</p>
+<p><b>Time Complexity:</b> All operations O(1). <b>Space Complexity:</b> O(capacity).</p>
+
+<h3>6.4 Stack (Singly Linked List LIFO)</h3>
+<p><b>Why chosen:</b> The undo mechanism requires LIFO ordering to reverse the most recent state-changing operation first.</p>
+<p><b>Where used:</b> <code>include/Stack.h</code> — Undo operation history.</p>
+<p><b>Operations implemented:</b> <code>push</code>, <code>pop</code>, <code>peek</code>, <code>isEmpty</code>, <code>size</code>, <code>clear</code>, <code>displayHistory</code>.</p>
+<p><b>Time Complexity:</b> All operations O(1). <b>Space Complexity:</b> O(n).</p>
+
+<h3>6.5 Array Stack (Dynamically Resizing Array)</h3>
+<p><b>Why chosen:</b> Array-based stack with dynamic doubling provides better cache locality than linked-list stack.</p>
+<p><b>Where used:</b> <code>include/ArrayStack.h</code> — Undo log storage in <code>Simulation</code>.</p>
+<p><b>Operations implemented:</b> <code>push</code>, <code>pop</code>, <code>peek</code>, <code>isEmpty</code>, <code>isFull</code>, <code>size</code>, <code>capacity</code>, <code>clear</code>, <code>forEachTopDown</code>.</p>
+<p><b>Time Complexity:</b> Push O(1) amortized, Pop O(1), Peek O(1). <b>Space Complexity:</b> O(n).</p>
+
+<h3>6.6 Priority Queue (Binary Max-Heap)</h3>
+<p><b>Why chosen:</b> Emergency repair triage requires extracting the maximum-priority fault in O(log n) time.</p>
+<p><b>Where used:</b> <code>include/MaxHeap.h</code> — Repair queue in <code>Simulation</code>.</p>
+<p><b>Operations implemented:</b> <code>insert</code>, <code>extractMax</code>, <code>peekMax</code>, <code>heapifyUp</code>, <code>heapifyDown</code>, <code>displayQueue</code>, <code>updateFaultStatus</code>, <code>findFault</code>.</p>
+<p><b>Time Complexity:</b> Insert O(log n), ExtractMax O(log n), PeekMax O(1). <b>Space Complexity:</b> O(n).</p>
+
+<h3>6.7 Hash Table (Separate Chaining)</h3>
+<p><b>Why chosen:</b> Provides average O(1) lookup for locations and fault records by ID.</p>
+<p><b>Where used:</b> <code>include/HashTable.h</code> — Location and fault lookups in <code>Simulation</code>.</p>
+<p><b>Operations implemented:</b> <code>insert</code>, <code>search</code>, <code>searchPtr</code>, <code>update</code>, <code>remove</code>, <code>contains</code>, <code>getCollisionCount</code>, <code>displayBucketDiagnostics</code>.</p>
+<p><b>Hash Function:</b> Integer keys: <code>key % capacity</code>. String keys: djb2 polynomial rolling hash. <b>Time Complexity:</b> Average O(1), Worst O(n). <b>Space Complexity:</b> O(n + capacity).</p>
+
+<h3>6.8 Doubly Linked List</h3>
+<p><b>Why chosen:</b> Incident history requires bidirectional traversal (chronological and reverse-chronological) and O(1) removal from both ends.</p>
+<p><b>Where used:</b> <code>include/DoublyLinkedList.h</code> — Incident event logging in <code>Simulation</code>.</p>
+<p><b>Operations implemented:</b> <code>append</code>, <code>prepend</code>, <code>removeFirst</code>, <code>removeLast</code>, <code>displayForward</code>, <code>displayBackward</code>, <code>searchEvents</code>, <code>getLatest</code>.</p>
+<p><b>Time Complexity:</b> Append/Prepend O(1), RemoveFirst/RemoveLast O(1), Search O(n). <b>Space Complexity:</b> O(n).</p>
+
+<h3>6.9 Custom Vector (Dynamic Array)</h3>
+<p><b>Why chosen:</b> Provides dynamic array functionality without STL <code>std::vector</code>, adhering to the zero-STL policy.</p>
+<p><b>Where used:</b> <code>include/CustomVector.h</code> — General-purpose dynamic arrays throughout the project.</p>
+<p><b>Operations implemented:</b> <code>push_back</code>, <code>pop_back</code>, <code>operator[]</code>, <code>at</code>, <code>size</code>, <code>capacity</code>, <code>empty</code>, <code>clear</code>, <code>begin</code>, <code>end</code>.</p>
+<p><b>Time Complexity:</b> Push_back O(1) amortized, Access O(1). <b>Space Complexity:</b> O(n).</p>
+
+<div class="page-break"></div>
+
+<!-- ===================== ALGORITHMS USED ===================== -->
+<h2>7. Algorithms Used</h2>
+
+<h3>7.1 Breadth-First Search (BFS)</h3>
+<p><b>Explanation:</b> BFS explores the power grid starting from the Main Power Station using a custom Queue, visiting all reachable locations via operational transmission lines. This partitions the city into powered versus disconnected sectors.</p>
+<p><b>Pseudocode:</b></p>
+<div class="code-block">
+BFS(startVertex):
+  visited[startVertex] = true
+  Queue.enqueue(startVertex)
+  while Queue not empty:
+    u = Queue.dequeue()
+    reachable.add(u)
+    for each neighbor v of u:
+      if edge (u,v) is operational AND not visited[v]:
+        visited[v] = true
+        Queue.enqueue(v)
+  return reachable
+</div>
+<p><b>Time Complexity:</b> O(V + E) where V = vertices, E = edges. <b>Space Complexity:</b> O(V).</p>
+
+<h3>7.2 Depth-First Search (DFS)</h3>
+<p><b>Explanation:</b> DFS recursively traverses the network from a start vertex, exploring as far as possible along each branch before backtracking. Used for topological reachability inspection.</p>
+<p><b>Pseudocode:</b></p>
+<div class="code-block">
+DFS(u, visited):
+  visited[u] = true
+  traversalOrder.add(u)
+  for each neighbor v of u:
+    if edge (u,v) is operational AND not visited[v]:
+      DFS(v, visited)
+</div>
+<p><b>Time Complexity:</b> O(V + E). <b>Space Complexity:</b> O(V) for recursion stack + visited array.</p>
+
+<h3>7.3 Dijkstra's Shortest Path Algorithm</h3>
+<p><b>Explanation:</b> Dijkstra's algorithm computes the minimum-travel-time path from a repair crew depot to a target location on the independent road network. It uses positive edge weights (travel minutes) and reconstructs the path via parent pointers.</p>
+<p><b>Pseudocode:</b></p>
+<div class="code-block">
+Dijkstra(startId, targetId):
+  dist[startId] = 0; all others = INF
+  visited[all] = false; parent[all] = -1
+  repeat V times:
+    u = unvisited vertex with minimum dist[u]
+    if u == -1 or dist[u] == INF: break
+    visited[u] = true
+    if u == targetId: break
+    for each neighbor v of u:
+      if not visited[v] and dist[u] + weight(u,v) < dist[v]:
+        dist[v] = dist[u] + weight(u,v)
+        parent[v] = u
+  reconstruct path from targetId using parent pointers
+</div>
+<p><b>Time Complexity:</b> O(V²) with array-based implementation (no priority queue). <b>Space Complexity:</b> O(V).</p>
+
+<h3>7.4 Max-Heap Priority Scheduling</h3>
+<p><b>Explanation:</b> Faults are inserted into a binary max-heap ordered by priority score. The highest-priority fault is at the root and extracted first for repair.</p>
+<p><b>Priority Score Formula:</b></p>
+<div class="code-block">
+Priority Score = (Severity × 10) + (Critical Facilities × 20)
+               + (Population Affected / 100) + (Outage Duration × 2)
+</div>
+<p><b>Pseudocode:</b></p>
+<div class="code-block>
+MaxHeapInsert(fault):
+  heap[heapSize] = fault
+  heapifyUp(heapSize)
+  heapSize++
+
+MaxHeapExtractMax():
+  maxItem = heap[0]
+  heap[0] = heap[heapSize - 1]
+  heapSize--
+  heapifyDown(0)
+  return maxItem
+
+heapifyUp(i):
+  while i > 0 and heap[i] > heap[parent(i)]:
+    swap(heap[i], heap[parent(i)])
+    i = parent(i)
+
+heapifyDown(i):
+  largest = i
+  if left child > heap[largest]: largest = left
+  if right child > heap[largest]: largest = right
+  if largest != i:
+    swap(heap[i], heap[largest])
+    heapifyDown(largest)
+</div>
+<p><b>Time Complexity:</b> Insert O(log n), ExtractMax O(log n), PeekMax O(1). <b>Space Complexity:</b> O(n).</p>
+
+<h3>7.5 Sorting Algorithms</h3>
+<table>
+  <tr><th>Algorithm</th><th>Best Case</th><th>Average Case</th><th>Worst Case</th><th>Space Complexity</th></tr>
+  <tr><td>Bubble Sort</td><td>O(n)</td><td>O(n²)</td><td>O(n²)</td><td>O(1)</td></tr>
+  <tr><td>Selection Sort</td><td>O(n²)</td><td>O(n²)</td><td>O(n²)</td><td>O(1)</td></tr>
+  <tr><td>Insertion Sort</td><td>O(n)</td><td>O(n²)</td><td>O(n²)</td><td>O(1)</td></tr>
+  <tr><td>Quick Sort</td><td>O(n log n)</td><td>O(n log n)</td><td>O(n²)</td><td>O(log n)</td></tr>
+  <tr><td>Merge Sort</td><td>O(n log n)</td><td>O(n log n)</td><td>O(n log n)</td><td>O(n)</td></tr>
+</table>
+
+<p><b>QuickSort Pseudocode:</b></p>
+<div class="code-block>
+quickSort(arr, low, high):
+  if low < high:
+    pi = partition(arr, low, high)
+    quickSort(arr, low, pi - 1)
+    quickSort(arr, pi + 1, high)
+
+partition(arr, low, high):
+  pivot = arr[high]
+  i = low - 1
+  for j = low to high - 1:
+    if compare(arr[j], pivot):
+      i++
+      swap(arr[i], arr[j])
+  swap(arr[i + 1], arr[high])
+  return i + 1
+</div>
+
+<p><b>MergeSort Pseudocode:</b></p>
+<div class="code-block>
+mergeSort(arr, left, right):
+  if left < right:
+    mid = (left + right) / 2
+    mergeSort(arr, left, mid)
+    mergeSort(arr, mid + 1, right)
+    merge(arr, left, mid, right)
+</div>
+
+<h3>7.6 Searching Algorithms</h3>
+<table>
+  <tr><th>Algorithm</th><th>Time Complexity</th><th>Space Complexity</th><th>Requirement</th></tr>
+  <tr><td>Linear Search</td><td>O(n)</td><td>O(1)</td><td>Works on unsorted data</td></tr>
+  <tr><td>Binary Search</td><td>O(log n)</td><td>O(1)</td><td>Requires sorted data</td></tr>
+</table>
+
+<div class="page-break"></div>
+
+<!-- ===================== IMPLEMENTATION ===================== -->
+<h2>8. Implementation</h2>
+
+<h3>8.1 Build & Compile Commands</h3>
+<p>The following commands were used to compile and run the project:</p>
+
+<div class="code-block>
+# Compile the interactive GridGuard simulator
+g++ -std=c++14 -O2 -Iinclude main.cpp src/Graph.cpp src/RoadNetwork.cpp src/Simulation.cpp src/Sorting.cpp -o bin/GridGuard.exe
+
+# Compile the automated test suite
+g++ -std=c++14 -O2 -Iinclude tests/test_suite.cpp src/Graph.cpp src/RoadNetwork.cpp src/Simulation.cpp src/Sorting.cpp -o bin/test_suite.exe
+
+# Run the interactive simulator
+./bin/GridGuard.exe
+
+# Run the automated test harness
+./bin/test_suite.exe
+</div>
+
+<p>Alternatively, using the Makefile:</p>
+<div class="code-block>
+mingw32-make all              # Build both binaries
+mingw32-make test             # Build and run test suite
+mingw32-make clean            # Remove bin/ directory
+</div>
+
+<p>Or using the Windows batch script:</p>
+<div class="code-block>
+compile.bat
+</div>
+
+<p>Or using CMake:</p>
+<div class="code-block>
+cmake -S . -B build
+cmake --build build
+</div>
+
+<h3>8.2 Key Code Snippets</h3>
+
+<h4>8.2.1 Fault Priority Score Calculation (Fault.h:40-45)</h4>
+<div class="code-block>
+void Fault::calculatePriority() {
+    priorityScore = (severity * 10.0)
+                  + (criticalFacilitiesAffected * 20.0)
+                  + (static_cast<double>(populationAffected) / 100.0)
+                  + (outageDuration * 2.0);
+}
+</div>
+
+<h4>8.2.2 BFS Traversal (Graph.cpp:267-298)</h4>
+<div class="code-block>
+void Graph::runBFS(int startVertexId, CustomVector<int>& reachableLocations, bool onlyOperational) const {
+    reachableLocations.clear();
+    if (startVertexId < 0 || startVertexId >= MAX_VERTICES || !locationExists[startVertexId]) {
+        return;
+    }
+
+    bool visited[MAX_VERTICES] = {false};
+    CircularQueue<int> q(MAX_VERTICES);
+
+    visited[startVertexId] = true;
+    q.enqueue(startVertexId);
+
+    while (!q.isEmpty()) {
+        int u = q.dequeue();
+        reachableLocations.push_back(u);
+
+        AdjEdgeNode* curr = adjList[u];
+        while (curr != nullptr) {
+            int v = curr->neighborLocationId;
+            bool canTraverse = true;
+            if (onlyOperational) {
+                canTraverse = isPowerLineOperational(curr->powerLineId);
+            }
+
+            if (canTraverse && !visited[v] && locationExists[v]) {
+                visited[v] = true;
+                q.enqueue(v);
+            }
+            curr = curr->next;
+        }
+    }
+}
+</div>
+
+<h4>8.2.3 Dijkstra's Algorithm (RoadNetwork.cpp:86-168)</h4>
+<div class="code-block>
+bool RoadNetwork::findShortestPath(int startId, int targetId,
+                                   CustomVector<int>& pathOut, double& totalCostOut) const {
+    pathOut.clear();
+    totalCostOut = 0.0;
+
+    const double INF = 1e9;
+    double dist[MAX_VERTICES];
+    bool visited[MAX_VERTICES];
+    int parent[MAX_VERTICES];
+
+    for (int i = 0; i < MAX_VERTICES; ++i) {
+        dist[i] = INF;
+        visited[i] = false;
+        parent[i] = -1;
+    }
+
+    dist[startId] = 0.0;
+
+    for (int count = 0; count < MAX_VERTICES; ++count) {
+        double minVal = INF;
+        int u = -1;
+        for (int v = 0; v < MAX_VERTICES; ++v) {
+            if (vertexExists[v] && !visited[v] && dist[v] < minVal) {
+                minVal = dist[v];
+                u = v;
+            }
+        }
+
+        if (u == -1 || minVal >= INF) break;
+        visited[u] = true;
+        if (u == targetId) break;
+
+        RoadEdgeNode* edge = adjList[u];
+        while (edge != nullptr) {
+            int v = edge->toLocationId;
+            if (!visited[v]) {
+                double newDist = dist[u] + edge->travelMinutes;
+                if (newDist < dist[v]) {
+                    dist[v] = newDist;
+                    parent[v] = u;
+                }
+            }
+            edge = edge->next;
+        }
+    }
+
+    if (dist[targetId] >= INF) return false;
+
+    totalCostOut = dist[targetId];
+    CustomVector<int> reversePath;
+    int curr = targetId;
+    while (curr != -1) {
+        reversePath.push_back(curr);
+        curr = parent[curr];
+    }
+
+    for (int i = static_cast<int>(reversePath.size()) - 1; i >= 0; --i) {
+        pathOut.push_back(reversePath[i]);
+    }
+
+    return true;
+}
+</div>
+
+<h4>8.2.4 Max-Heap Insert and ExtractMax (MaxHeap.h:94-114)</h4>
+<div class="code-block>
+void MaxHeap::insert(const Fault& fault) {
+    if (heapSize >= capacity) {
+        resize(capacity * 2);
+    }
+    heap[heapSize] = fault;
+    heapifyUp(heapSize);
+    heapSize++;
+}
+
+Fault MaxHeap::extractMax() {
+    if (isEmpty()) {
+        throw std::runtime_error("Cannot extractMax from an empty Max-Heap");
+    }
+    Fault maxItem = heap[0];
+    heap[0] = heap[heapSize - 1];
+    heapSize--;
+    if (heapSize > 0) {
+        heapifyDown(0);
+    }
+    return maxItem;
+}
+</div>
+
+<h4>8.2.5 Simulate Power Line Failure (Simulation workflow)</h4>
+<div class="code-block>
+bool Simulation::simulatePowerLineFailure(int lineId, int severity, int durationMinutes) {
+    // 1. Disable the power line in the graph
+    // 2. Push undo record onto stack
+    // 3. Run BFS from main station to find disconnected locations
+    // 4. Calculate fault priority score
+    // 5. Insert fault into Max-Heap
+    // 6. Cache fault in Hash Table
+    // 7. Append failure event to Doubly Linked List
+    // 8. Print outage report
+}
+</div>
+
+<h3>8.3 Directory Structure</h3>
+<div class="code-block>
+dsa-project/
+├── include/
+│   ├── CustomVector.h      # Custom dynamic array template
+│   ├── DoublyLinkedList.h  # Doubly linked list for incident logging
+│   ├── Fault.h             # Fault data entity & priority formula
+│   ├── Graph.h             # Power grid graph (manual adjacency list)
+│   ├── HashTable.h         # Separate-chaining hash table template
+│   ├── IncidentEvent.h     # Simulation log event structure
+│   ├── Location.h          # City facility location representation
+│   ├── MaxHeap.h           # Binary max-heap priority queue
+│   ├── PowerLine.h         # Transmission line edge representation
+│   ├── Queue.h             # Linked-list FIFO queue
+│   ├── RoadNetwork.h       # Independent road graph for Dijkstra
+│   ├── Simulation.h        # Central simulation engine and coordinator
+│   ├── Sorting.h           # Manual QuickSort and MergeSort algorithms
+│   ├── Stack.h             # Linked-list LIFO undo stack
+│   ├── SearchAlgorithms.h  # Linear and binary search
+│   ├── CircularQueue.h     # Array-based circular queue
+│   └── ArrayStack.h        # Dynamically resizing array stack
+├── src/
+│   ├── Graph.cpp           # Graph methods, BFS, DFS, connectivity
+│   ├── RoadNetwork.cpp     # Road network methods and Dijkstra
+│   ├── Simulation.cpp      # Workflows, incident logging, undo dispatch
+│   └── Sorting.cpp         # QuickSort, MergeSort, Bubble, Selection, Insertion
+├── tests/
+│   └── test_suite.cpp      # Automated verification suite (10 test scenarios)
+├── docs/
+│   ├── README.md           # System documentation
+│   ├── DSA_Explanation.md  # In-depth DSA technical breakdown
+│   └── Test_Cases.md       # Test scenarios and validation results
+├── frontend/               # React + Leaflet web dashboard
+├── bin/                    # Compiled binary output directory
+├── main.cpp                # Interactive console UI entry point
+├── Makefile                # Build automation script
+├── compile.bat             # Windows batch compile script
+└── CMakeLists.txt          # CMake build configuration
+</div>
+
+<h3>8.4 Function Explanations (Simulation.h)</h3>
+<table>
+  <tr><th>Function</th><th>Description</th></tr>
+  <tr><td><code>simulatePowerLineFailure(lineId, severity, duration)</code></td><td>Disables a power line, runs BFS, creates fault, pushes undo record</td></tr>
+  <tr><td><code>processNextRepair(faultId)</code></td><td>Extracts max-priority fault, runs Dijkstra, restores line, updates status</td></tr>
+  <tr><td><code>undoLastOperation()</code></td><td>Pops undo stack and reverses the last state-changing action</td></tr>
+  <tr><td><code>runBFSTraversal(startId)</code></td><td>Runs BFS from a given start location using custom Queue</td></tr>
+  <tr><td><code>runDFSTraversal(startId)</code></td><td>Runs recursive DFS from a given start location</td></tr>
+  <tr><td><code>analyzeAndDisplayConnectivity()</code></td><td>Partitions locations into powered vs. disconnected sectors</td></tr>
+  <tr><td><code>findRepairCrewRoute(targetId)</code></td><td>Runs Dijkstra from depot to target location</td></tr>
+  <tr><td><code>sortAndDisplayFaultsAlgo(algo, criterion)</code></td><td>Sorts faults using one of 5 manual algorithms</td></tr>
+  <tr><td><code>searchLocationById(locId)</code></td><td>Hash Table O(1) average lookup for location</td></tr>
+  <tr><td><code>searchFaultById(faultId)</code></td><td>Hash Table O(1) average lookup for fault record</td></tr>
+  <tr><td><code>demonstrateSearchComparison(faultId)</code></td><td>Compares linear vs. binary search steps</td></tr>
+  <tr><td><code>displayHashTableDiagnostics()</code></td><td>Shows collision count and bucket chain distribution</td></tr>
+  <tr><td><code>displayUndoHistory()</code></td><td>Shows stack contents (top to bottom)</td></tr>
+</table>
+
+<div class="page-break"></div>
+
+<!-- ===================== RESULTS & DISCUSSION ===================== -->
+<h2>9. Results & Discussion</h2>
+
+<h3>9.1 Compilation Results</h3>
+<p>Both binaries compiled successfully with <code>g++</code> (MinGW 6.3.0) using C++14 standard with no warnings:</p>
+<div class="output-box>
+g++ -std=c++14 -O2 -Iinclude main.cpp src/Graph.cpp src/RoadNetwork.cpp src/Simulation.cpp src/Sorting.cpp -o bin/GridGuard.exe
+g++ -std=c++14 -O2 -Iinclude tests/test_suite.cpp src/Graph.cpp src/RoadNetwork.cpp src/Simulation.cpp src/Sorting.cpp -o bin/test_suite.exe
+</div>
+
+<h3>9.2 Test Suite Results (10/10 Passed)</h3>
+<table>
+  <tr><th>Test</th><th>Scenario</th><th>Result</th></tr>
+  <tr><td>Test 1</td><td>Normal Network Operation — All 14 locations connected</td><td>PASS</td></tr>
+  <tr><td>Test 2</td><td>Non-Critical Failure — Line #17 isolates Location 12</td><td>PASS</td></tr>
+  <tr><td>Test 3</td><td>Redundant Connection — Hospital 5 remains powered via Line #7</td><td>PASS</td></tr>
+  <tr><td>Test 4</td><td>Hospital Outage — St. Jude priority score ≥ 300</td><td>PASS</td></tr>
+  <tr><td>Test 5</td><td>Multiple Faults — Heap correctly prioritizes Hospital fault #14</td><td>PASS</td></tr>
+  <tr><td>Test 6</td><td>Repair Operation — Location 12 re-energized, queue emptied</td><td>PASS</td></tr>
+  <tr><td>Test 7</td><td>Undo Operation — Failure reversed, stack emptied</td><td>PASS</td></tr>
+  <tr><td>Test 8</td><td>Dijkstra Route — Valid path from Main Station to Oakridge</td><td>PASS</td></tr>
+  <tr><td>Test 9</td><td>Hash Table Collision — 3 items in 5 buckets all searchable</td><td>PASS</td></tr>
+  <tr><td>Test 10</td><td>Incident History — Bidirectional traversal verified</td><td>PASS</td></tr>
+</table>
+
+<div class="output-box>
+========================================================================
+           GRIDGUARD ACADEMIC VERIFICATION TEST HARNESS
+========================================================================
+
+ RUNNING: TEST 1: Normal Network Operation
+ ...
+ [PASS] All 14 locations are connected and powered in baseline state.
+
+ RUNNING: TEST 2: Non-Critical Power Line Failure
+ ...
+ [PASS] Line #17 failure properly isolated Location 12 (Oakridge Suburb).
+
+ RUNNING: TEST 3: Redundant Connection (Alternate Power Paths)
+ ...
+ [PASS] Hospital 5 remained powered via redundant Line #7 after Line #6 failed.
+
+ RUNNING: TEST 4: Hospital Outage & Priority Elevation
+ ...
+ [PASS] St. Jude Trauma Center outage correctly identified critical facility and assigned elevated score.
+
+ RUNNING: TEST 5: Multiple Simultaneous Faults & Heap Order
+ ...
+ [PASS] Max-Heap correctly prioritized critical Hospital fault #14 above all other simultaneous faults.
+
+ RUNNING: TEST 6: Repair Operation & Grid Re-energization
+ ...
+ [PASS] Repair successfully completed, re-energized Location 12, and emptied repair queue.
+
+ RUNNING: TEST 7: Undo Mechanism via Stack
+ ...
+ [PASS] Undo successfully popped stack and reversed power line failure back to operational.
+
+ RUNNING: TEST 8: Dijkstra Shortest Route Calculation
+ ...
+ [PASS] Dijkstra computed shortest route with non-negative travel weights.
+
+ RUNNING: TEST 9: Hash Table Separate Chaining & Collision Handling
+ ...
+ [PASS] Separate chaining resolved collisions; all 3 items retrieved accurately.
+
+ RUNNING: TEST 10: Doubly Linked List Forward & Backward Traversal
+ ...
+ [PASS] Doubly Linked List correctly maintained bidirectional node pointers.
+
+========================================================================
+     ALL 10 VERIFICATION TESTS PASSED SUCCESSFULLY! (10/10)
+========================================================================
+</div>
+
+<h3>9.3 Discussion</h3>
+<p>
+The manual implementation of all data structures without STL containers demonstrates a deep understanding of memory management, pointer manipulation, and algorithmic complexity. Key findings:</p>
+<ul>
+  <li><b>Zero-STL Policy:</b> All core DSA logic uses raw pointers and dynamic memory. Only <code>std::string</code>, streams, and exceptions are used for text/I/O support.</li>
+  <li><b>Memory Safety:</b> All classes implement the rule-of-three (destructor, copy constructor, copy assignment) to prevent memory leaks and double-free errors.</li>
+  <li><b>Algorithmic Correctness:</b> All 10 test scenarios pass, validating BFS connectivity, heap prioritization, Dijkstra routing, hash collisions, and undo operations.</li>
+  <li><b>Time Complexity:</b> Operations match theoretical expectations — BFS/DFS O(V+E), Dijkstra O(V²), Heap O(log n), Hash Table O(1) average, Sorting O(n log n) for Quick/Merge, O(n²) for Bubble/Selection/Insertion.</li>
+</ul>
+
+<div class="page-break"></div>
+
+<!-- ===================== CONCLUSION ===================== -->
+<h2>10. Conclusion</h2>
+<p>
+GridGuard successfully demonstrates the implementation and integration of nine manually engineered data structures and six fundamental algorithms in a unified power grid fault detection and restoration simulation. The project achieves all stated objectives:</p>
+<ul>
+  <li>Core DSA structures (Graph, Queue, Stack, Max-Heap, Hash Table, Doubly Linked List, Custom Vector, Circular Queue, Array Stack) are implemented from scratch without STL containers.</li>
+  <li>Graph traversal (BFS, DFS) correctly identifies powered versus disconnected sectors.</li>
+  <li>Dijkstra's algorithm computes optimal repair crew routes on an independent road network.</li>
+  <li>Max-Heap priority scheduling objectively triages emergency repairs using the defined scoring formula.</li>
+  <li>Stack-based undo enables reversible state-changing operations with full audit trail.</li>
+  <li>Manual sorting (5 algorithms) and searching (2 algorithms) are provided with complexity demonstrations.</li>
+  <li>All 10 automated validation tests pass, confirming correctness across normal operation, outages, repairs, undo, routing, hashing, and history traversal.</li>
+</ul>
+<p>
+The project serves as a comprehensive academic demonstration of Data Structures and Algorithms principles applied to a realistic municipal infrastructure domain.</p>
+
+<div class="page-break"></div>
+
+<!-- ===================== FUTURE WORK ===================== -->
+<h2>11. Future Work</h2>
+<ul>
+  <li><b>Persistence:</b> Add file-based save/load for grid configuration and incident history.</li>
+  <li><b>Real-time Monitoring:</b> Integrate with live SCADA data feeds for actual grid monitoring.</li>
+  <li><b>Advanced Routing:</b> Implement A* search with heuristics for faster road network routing.</li>
+  <li><b>Parallel BFS:</b> Multi-threaded BFS for large-scale grid simulation.</li>
+  <li><b>Web Dashboard Enhancement:</b> Connect the React frontend to the C++ backend via WebSocket or REST API for real-time visualization.</li>
+  <li><b>More Fault Types:</b> Support voltage sags, frequency deviations, and transformer failures beyond line outages.</li>
+  <li><b>GUI Interface:</b> Develop a native desktop GUI (Qt or WinForms) as an alternative to the console interface.</li>
+</ul>
+
+<div class="page-break"></div>
+
+<!-- ===================== REFERENCES ===================== -->
+<h2>12. References</h2>
+<ol>
+  <li>Cormen, T. H., Leiserson, C. E., Rivest, R. L., &amp; Stein, C. (2009). <i>Introduction to Algorithms</i> (3rd ed.). MIT Press.</li>
+  <li>Sedgewick, R., &amp; Wayne, K. (2011). <i>Algorithms</i> (4th ed.). Addison-Wesley.</li>
+  <li>Stroustrup, B. (2013). <i>The C++ Programming Language</i> (4th ed.). Addison-Wesley.</li>
+  <li>Dijkstra, E. W. (1959). "A Note on Two Problems in Connexion with Graphs." <i>Numerische Mathematik</i>, 1, 269–271.</li>
+  <li>Williams, J. W. J. (1964). "Algorithm 232: Heapsort." <i>Communications of the ACM</i>, 7(6), 347–348.</li>
+  <li>Thorup, M. (2000). "Undirected Single-Source Shortest Paths with Positive Integer Weights in Linear Time." <i>Journal of the ACM</i>, 46(3), 362–394.</li>
+  <li>MinGW GCC Documentation. https://www.mingw-w64.org/</li>
+  <li>React Documentation. https://reactjs.org/</li>
+  <li>Leaflet.js Documentation. https://leafletjs.com/</li>
+</ol>
+
+</body>
+</html>

@@ -262,7 +262,8 @@ void Graph::displayAllLocations() const {
     std::cout << "=================================================================================================\n";
 }
 
-// Custom BFS Traversal using our manual Queue
+// Custom BFS Traversal using our manual circular queue.  The graph holds at
+// most MAX_VERTICES vertices, so that capacity is sufficient without resize.
 void Graph::runBFS(int startVertexId, CustomVector<int>& reachableLocations, bool onlyOperational) const {
     reachableLocations.clear();
     if (startVertexId < 0 || startVertexId >= MAX_VERTICES || !locationExists[startVertexId]) {
@@ -270,7 +271,7 @@ void Graph::runBFS(int startVertexId, CustomVector<int>& reachableLocations, boo
     }
 
     bool visited[MAX_VERTICES] = {false};
-    Queue<int> q;
+    CircularQueue<int> q(MAX_VERTICES);
 
     visited[startVertexId] = true;
     q.enqueue(startVertexId);

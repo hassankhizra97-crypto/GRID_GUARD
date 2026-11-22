@@ -73,6 +73,31 @@ public:
         count++;
     }
 
+    // Remove the oldest record.  Both neighbour links are repaired before the
+    // old node is released, so the list stays valid in both directions.
+    bool removeFirst() {
+        if (head == nullptr) return false;
+        DNode* oldHead = head;
+        head = head->next;
+        if (head != nullptr) head->prev = nullptr;
+        else tail = nullptr;
+        delete oldHead;
+        --count;
+        return true;
+    }
+
+    // Remove the newest record in O(1), using the backward pointer.
+    bool removeLast() {
+        if (tail == nullptr) return false;
+        DNode* oldTail = tail;
+        tail = tail->prev;
+        if (tail != nullptr) tail->next = nullptr;
+        else head = nullptr;
+        delete oldTail;
+        --count;
+        return true;
+    }
+
     bool isEmpty() const {
         return head == nullptr;
     }

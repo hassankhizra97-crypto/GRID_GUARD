@@ -4,6 +4,10 @@
 #include "../include/Stack.h"
 #include "../include/MaxHeap.h"
 #include "../include/DoublyLinkedList.h"
+#include "../include/CircularQueue.h"
+#include "../include/ArrayStack.h"
+#include "../include/Sorting.h"
+#include "../include/SearchAlgorithms.h"
 #include <iostream>
 #include <cassert>
 #include <string>
@@ -207,8 +211,80 @@ void test10_IncidentHistory() {
     const IncidentEvent* latest = list.getLatest();
     assert(latest != nullptr);
     assert(latest->eventId == 3);
+    assert(list.removeFirst());
+    assert(list.removeLast());
+    assert(list.size() == 1);
 
     printPass("Doubly Linked List correctly maintained bidirectional node pointers.");
+}
+
+// TEST 11: Circular array queue preserves FIFO order through index wraparound.
+void test11_CircularQueueWraparound() {
+    printTestHeader("TEST 11: Circular Queue FIFO & Wraparound");
+    CircularQueue<int> queue(3);
+    queue.enqueue(10); queue.enqueue(20); queue.enqueue(30);
+    assert(queue.isFull());
+    assert(queue.dequeue() == 10);
+    queue.enqueue(40); // writes into the slot freed at the beginning
+    assert(queue.dequeue() == 20);
+    assert(queue.dequeue() == 30);
+    assert(queue.dequeue() == 40);
+    assert(queue.isEmpty());
+    printPass("Circular queue maintained FIFO order across rear/front wraparound.");
+}
+
+// TEST 12: Array stack is LIFO and expands safely when its initial capacity fills.
+void test12_ArrayStackAndUndo() {
+    printTestHeader("TEST 12: Array Stack LIFO & Dynamic Growth");
+    ArrayStack<int> stack(2);
+    stack.push(1); stack.push(2); stack.push(3);
+    assert(stack.capacity() >= 3);
+    assert(stack.pop() == 3 && stack.peek() == 2 && stack.pop() == 2 && stack.pop() == 1);
+    assert(stack.isEmpty());
+    Simulation sim;
+    sim.simulatePowerLineFailure(48, 2, 30);
+    assert(sim.undoLastOperation());
+    assert(sim.getPowerGrid().isPowerLineOperational(48));
+    printPass("Array stack provides LIFO operations and backs simulation undo.");
+}
+
+static bool isDescendingBySeverity(const Fault values[], int count) {
+    for (int i = 1; i < count; ++i) if (values[i - 1].severity < values[i].severity) return false;
+    return true;
+}
+
+// TEST 13: Every required manual sort and the manual searches return expected results.
+void test13_SortingAndSearching() {
+    printTestHeader("TEST 13: Manual Sorting & Searching");
+    Fault original[4] = { Fault(104, 4, 2, 10, 0, 10), Fault(101, 1, 5, 10, 0, 10),
+                          Fault(103, 3, 1, 10, 0, 10), Fault(102, 2, 4, 10, 0, 10) };
+    Fault bubble[4], selection[4], insertion[4], quick[4], merge[4];
+    for (int i = 0; i < 4; ++i) bubble[i] = selection[i] = insertion[i] = quick[i] = merge[i] = original[i];
+    Sorting::bubbleSort(bubble, 4, SORT_BY_SEVERITY);
+    Sorting::selectionSort(selection, 4, SORT_BY_SEVERITY);
+    Sorting::insertionSort(insertion, 4, SORT_BY_SEVERITY);
+    Sorting::quickSort(quick, 0, 3, SORT_BY_SEVERITY);
+    Sorting::mergeSort(merge, 0, 3, SORT_BY_SEVERITY);
+    assert(isDescendingBySeverity(bubble, 4) && isDescendingBySeverity(selection, 4));
+    assert(isDescendingBySeverity(insertion, 4) && isDescendingBySeverity(quick, 4) && isDescendingBySeverity(merge, 4));
+    // Insertion-sort a copy by ID before binary search, fulfilling its sorted-input prerequisite.
+    for (int i = 1; i < 4; ++i) { Fault key = original[i]; int j = i - 1; while (j >= 0 && original[j].faultId > key.faultId) { original[j + 1] = original[j]; --j; } original[j + 1] = key; }
+    assert(SearchAlgorithms::linearSearchFaultById(original, 4, 103) >= 0);
+    assert(SearchAlgorithms::binarySearchFaultById(original, 4, 103) >= 0);
+    printPass("All five manual sorts and both manual searches produced correct results.");
+}
+
+// TEST 14: Deleting a chained hash entry preserves the other colliding entries.
+void test14_HashDelete() {
+    printTestHeader("TEST 14: Hash Table Delete in Collision Chain");
+    HashTable<int, int> table(5);
+    table.insert(5, 50); table.insert(10, 100); table.insert(15, 150);
+    assert(table.remove(10));
+    int value = 0;
+    assert(!table.search(10, value));
+    assert(table.search(5, value) && value == 50);
+    assert(table.search(15, value) && value == 150);
+    printPass("Hash-table deletion repaired a collision chain without losing neighbours.");
 }
 
 int main() {
@@ -226,9 +302,13 @@ int main() {
     test8_DijkstraRoute();
     test9_HashTableCollision();
     test10_IncidentHistory();
+    test11_CircularQueueWraparound();
+    test12_ArrayStackAndUndo();
+    test13_SortingAndSearching();
+    test14_HashDelete();
 
     std::cout << "\n========================================================================\n";
-    std::cout << "   ALL 10 KARACHI VERIFICATION TESTS PASSED SUCCESSFULLY! (10/10)       \n";
+    std::cout << "   ALL 14 KARACHI VERIFICATION TESTS PASSED SUCCESSFULLY! (14/14)       \n";
     std::cout << "========================================================================\n\n";
 
     return 0;

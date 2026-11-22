@@ -3,7 +3,7 @@
 
 #include "Location.h"
 #include "PowerLine.h"
-#include "Queue.h"
+#include "CircularQueue.h"
 #include "CustomVector.h"
 #include <iostream>
 #include <iomanip>
@@ -72,7 +72,7 @@ public:
     void displayAllLocations() const;
 
     // Traversal and Connectivity Algorithms
-    // BFS uses custom Queue to find all reachable vertices from startVertexId
+    // BFS uses the custom array-based circular queue to find reachable vertices.
     void runBFS(int startVertexId, CustomVector<int>& reachableLocations, bool onlyOperational = true) const;
 
     // DFS demonstrates recursive exploration of graph

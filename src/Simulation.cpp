@@ -1,4 +1,6 @@
 #include "../include/Simulation.h"
+#include "../include/CircularQueue.h"
+#include "../include/ArrayStack.h"
 #include <iostream>
 #include <iomanip>
 #include <sstream>
@@ -261,7 +263,7 @@ bool Simulation::simulatePowerLineFailure(int lineId, int severity, int duration
     int fId = nextFaultId++;
 
     // STEP 4: Record operation in undo stack
-    undoStack.push(UndoAction(ACTION_LINE_DISABLED, lineId, fId,
+    arrayUndoStack.push(UndoAction(ACTION_LINE_DISABLED, lineId, fId,
                               "Simulated failure on Power Line #" + std::to_string(lineId)));
 
     // STEP 5: Run BFS from main power station
@@ -450,7 +452,7 @@ bool Simulation::processNextRepair(int specificFaultId) {
     powerGrid.restorePowerLine(lineId);
 
     // Push to undo stack
-    undoStack.push(UndoAction(ACTION_LINE_RESTORED, lineId, fId,
+    arrayUndoStack.push(UndoAction(ACTION_LINE_RESTORED, lineId, fId,
                               "Completed repair of Line #" + std::to_string(lineId)));
 
     // STEP 7: Run BFS again
@@ -520,7 +522,7 @@ bool Simulation::restorePowerLineDirectly(int lineId) {
     }
 
     powerGrid.restorePowerLine(lineId);
-    undoStack.push(UndoAction(ACTION_LINE_RESTORED, lineId, -1,
+    arrayUndoStack.push(UndoAction(ACTION_LINE_RESTORED, lineId, -1,
                               "Manual direct restoration of Line #" + std::to_string(lineId)));
 
     // Re-run BFS to restore status
@@ -541,12 +543,12 @@ bool Simulation::restorePowerLineDirectly(int lineId) {
 }
 
 bool Simulation::undoLastOperation() {
-    if (undoStack.isEmpty()) {
+    if (arrayUndoStack.isEmpty()) {
         std::cout << "[INFO] Undo Stack is empty. No reversible operations to undo.\n";
         return false;
     }
 
-    UndoAction action = undoStack.pop();
+    UndoAction action = arrayUndoStack.pop();
     simulationTimeMinutes += 5;
 
     std::cout << "\n========================================================================================\n";
@@ -660,7 +662,17 @@ void Simulation::searchIncidentHistory(const std::string& keyword) const {
 }
 
 void Simulation::displayUndoHistory() const {
-    undoStack.displayHistory();
+    if (arrayUndoStack.isEmpty()) {
+        std::cout << "   [Undo Stack is Empty - No reversible operations recorded]\n";
+        return;
+    }
+    std::cout << "   Current Undo Stack (Top -> Bottom, " << arrayUndoStack.size() << " entries):\n";
+    int level = 1;
+    arrayUndoStack.forEachTopDown([&level](const UndoAction& action) {
+        std::cout << "   " << level++ << ". ";
+        action.display();
+        std::cout << "\n";
+    });
 }
 
 bool Simulation::searchLocationById(int locId) const {
@@ -791,6 +803,10 @@ bool Simulation::findRepairCrewRoute(int targetLocationId) const {
 }
 
 void Simulation::sortAndDisplayFaults(SortCriterion criterion, bool ascending) {
+    sortAndDisplayFaultsAlgo(ALGO_QUICK_SORT, criterion, ascending);
+}
+
+void Simulation::sortAndDisplayFaultsAlgo(SortAlgorithm algorithm, SortCriterion criterion, bool ascending) {
     int totalFaults = nextFaultId - 101;
     if (totalFaults <= 0) {
         std::cout << "[INFO] No faults recorded yet to sort.\n";
@@ -813,11 +829,28 @@ void Simulation::sortAndDisplayFaults(SortCriterion criterion, bool ascending) {
         return;
     }
 
-    // Execute Manual QuickSort
-    Sorting::quickSort(arr, 0, count - 1, criterion, ascending);
+    // Select a hand-written algorithm; no STL sorting is used here.
+    switch (algorithm) {
+        case ALGO_BUBBLE_SORT:
+            Sorting::bubbleSort(arr, count, criterion, ascending);
+            break;
+        case ALGO_SELECTION_SORT:
+            Sorting::selectionSort(arr, count, criterion, ascending);
+            break;
+        case ALGO_INSERTION_SORT:
+            Sorting::insertionSort(arr, count, criterion, ascending);
+            break;
+        case ALGO_MERGE_SORT:
+            Sorting::mergeSort(arr, 0, count - 1, criterion, ascending);
+            break;
+        case ALGO_QUICK_SORT:
+        default:
+            Sorting::quickSort(arr, 0, count - 1, criterion, ascending);
+            break;
+    }
 
     std::cout << "\n========================================================================================\n";
-    std::cout << "            SORTED FAULT RECORDS BY: "
+    std::cout << "       " << Sorting::getSortAlgorithmName(algorithm) << " - SORTED FAULT RECORDS BY: "
               << Sorting::getCriterionName(criterion)
               << (ascending ? " (ASCENDING)" : " (DESCENDING)") << "\n";
     std::cout << "========================================================================================\n";
@@ -847,6 +880,76 @@ void Simulation::sortAndDisplayFaults(SortCriterion criterion, bool ascending) {
     std::cout << "========================================================================================\n";
 
     delete[] arr;
+}
+
+void Simulation::demonstrateLinearSearch(int targetFaultId) const {
+    int count = nextFaultId - 101;
+    Fault* faults = new Fault[count > 0 ? count : 1];
+    int used = 0;
+    for (int id = 101; id < nextFaultId; ++id) {
+        Fault fault;
+        if (faultTable.search(id, fault)) faults[used++] = fault;
+    }
+    int index = SearchAlgorithms::linearSearchFaultById(faults, used, targetFaultId);
+    std::cout << "Linear search: Fault #" << targetFaultId
+              << (index >= 0 ? " found at array index " : " was not found")
+              << (index >= 0 ? std::to_string(index) : "") << ".\n";
+    delete[] faults;
+}
+
+void Simulation::demonstrateBinarySearch(int targetFaultId) const {
+    int count = nextFaultId - 101;
+    Fault* faults = new Fault[count > 0 ? count : 1];
+    int used = 0;
+    for (int id = 101; id < nextFaultId; ++id) {
+        Fault fault;
+        if (faultTable.search(id, fault)) faults[used++] = fault;
+    }
+    // Fault IDs are generated in increasing order, but insertion sort makes the
+    // binary-search precondition explicit if storage order ever changes.
+    for (int i = 1; i < used; ++i) {
+        Fault key = faults[i];
+        int j = i - 1;
+        while (j >= 0 && faults[j].faultId > key.faultId) {
+            faults[j + 1] = faults[j];
+            --j;
+        }
+        faults[j + 1] = key;
+    }
+    int index = SearchAlgorithms::binarySearchFaultById(faults, used, targetFaultId);
+    std::cout << "Binary search (after sorting by Fault ID): Fault #" << targetFaultId
+              << (index >= 0 ? " found at sorted index " : " was not found")
+              << (index >= 0 ? std::to_string(index) : "") << ".\n";
+    delete[] faults;
+}
+
+void Simulation::demonstrateSearchComparison(int targetFaultId) const {
+    int count = nextFaultId - 101;
+    Fault* faults = new Fault[count > 0 ? count : 1];
+    int used = 0;
+    for (int id = 101; id < nextFaultId; ++id) {
+        Fault fault;
+        if (faultTable.search(id, fault)) faults[used++] = fault;
+    }
+    SearchAlgorithms::demonstrateSearchComparison(faults, used, targetFaultId);
+    delete[] faults;
+}
+
+void Simulation::demonstrateCircularQueue() const {
+    CircularQueue<int> queue(4);
+    queue.enqueue(10);
+    queue.enqueue(20);
+    queue.enqueue(30);
+    queue.dequeue();
+    queue.enqueue(40);
+    queue.enqueue(50); // rear wraps to the front of the array
+    queue.display();
+}
+
+void Simulation::demonstrateArrayStack() const {
+    std::cout << "Array undo stack contains " << arrayUndoStack.size()
+              << " reversible operation(s).\n";
+    displayUndoHistory();
 }
 
 void Simulation::displayOutageReportSummary() const {
