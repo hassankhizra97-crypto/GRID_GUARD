@@ -4,7 +4,8 @@ export type FacilityType =
   | 'HOSPITAL'
   | 'UNIVERSITY'
   | 'RESIDENTIAL'
-  | 'COMMERCIAL';
+  | 'COMMERCIAL'
+  | 'INDUSTRIAL';
 
 export type CriticalityLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 
@@ -28,8 +29,11 @@ export interface LocationNode {
   population: number;
   criticality: CriticalityLevel;
   isPowered: boolean;
-  x: number;
-  y: number;
+  latitude: number;
+  longitude: number;
+  area: string;
+  x?: number;
+  y?: number;
   [key: string]: unknown;
 }
 
@@ -40,6 +44,8 @@ export interface PowerLineEdge {
   isOperational: boolean;
   repairCost: number;
   travelCost: number;
+  capacityMW?: number;
+  lengthKM?: number;
 }
 
 export interface Fault {
@@ -66,6 +72,8 @@ export interface DijkstraStep {
   toId: number;
   fromName: string;
   toName: string;
+  fromCoord: [number, number];
+  toCoord: [number, number];
   segmentMinutes: number;
 }
 
@@ -76,6 +84,7 @@ export interface DijkstraRoute {
   destinationName: string;
   path: number[];
   pathNames: string[];
+  coordinates: [number, number][];
   totalTravelMinutes: number;
   steps: DijkstraStep[];
 }
@@ -94,6 +103,7 @@ export interface SimulationStats {
 
 export type ActivePage =
   | 'overview'
+  | 'map'
   | 'network'
   | 'faults'
   | 'repairs'

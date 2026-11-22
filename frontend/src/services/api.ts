@@ -12,7 +12,7 @@ import {
   INITIAL_ROADS,
 } from '../data/initialData';
 
-// Centralized API Service for GridGuard
+// Centralized API Service for GridGuard Karachi Power Grid
 // Connects to live C++ HTTP endpoint if active, with full high-fidelity fallback
 // matching the exact data model and behavior of GridGuard C++ DSA engine.
 
@@ -27,7 +27,7 @@ class GridGuardApiService {
   private incidentHistory: IncidentEvent[] = [
     {
       eventId: 1,
-      description: 'GridGuard Simulation initialized with 14 locations and 18 power lines.',
+      description: 'GridGuard Karachi Power Grid Simulation initialized with 44 municipal locations and 61 simulated lines.',
       relatedFaultId: -1,
       eventType: 'SYSTEM_INIT',
       timestamp: 'T+00:00',
@@ -80,7 +80,7 @@ class GridGuardApiService {
     const visited = new Set<number>();
     const queue: number[] = [];
 
-    // Start BFS at Main Power Station (ID 1)
+    // Start BFS at Central Karachi Supply Hub (ID 1)
     queue.push(1);
     visited.add(1);
 
@@ -116,9 +116,9 @@ class GridGuardApiService {
     return { connected, disconnected };
   }
 
-  // Exact Dijkstra Algorithm mirroring C++ RoadNetwork::findShortestPath
+  // Exact Dijkstra Algorithm mirroring C++ RoadNetwork::findShortestPath across Karachi
   public getDijkstraRoute(destinationId: number): DijkstraRoute {
-    const originId = 1; // Depot is at Main Power Station
+    const originId = 1; // Depot is at Central Karachi Supply Hub (PECHS)
     const originLoc = this.locations.find((l) => l.id === originId)!;
     const destLoc = this.locations.find((l) => l.id === destinationId) || originLoc;
 
@@ -130,6 +130,7 @@ class GridGuardApiService {
         destinationName: destLoc.name,
         path: [originId],
         pathNames: [originLoc.name],
+        coordinates: [[originLoc.latitude, originLoc.longitude]],
         totalTravelMinutes: 0,
         steps: [],
       };
@@ -184,16 +185,26 @@ class GridGuardApiService {
     }
 
     const pathNames = path.map((id) => this.locations.find((l) => l.id === id)?.name || `Loc ${id}`);
+    const coordinates: [number, number][] = path.map((id) => {
+      const loc = this.locations.find((l) => l.id === id);
+      return loc ? [loc.latitude, loc.longitude] : [24.8607, 67.0011];
+    });
+
     const steps = [];
     for (let i = 0; i < path.length - 1; i++) {
       const u = path[i];
       const v = path[i + 1];
+      const uLoc = this.locations.find((l) => l.id === u);
+      const vLoc = this.locations.find((l) => l.id === v);
       const road = INITIAL_ROADS.find((r) => (r.u === u && r.v === v) || (r.u === v && r.v === u));
+
       steps.push({
         fromId: u,
         toId: v,
-        fromName: this.locations.find((l) => l.id === u)?.name || `Loc ${u}`,
-        toName: this.locations.find((l) => l.id === v)?.name || `Loc ${v}`,
+        fromName: uLoc?.name || `Loc ${u}`,
+        toName: vLoc?.name || `Loc ${v}`,
+        fromCoord: [uLoc?.latitude || 24.86, uLoc?.longitude || 67.0] as [number, number],
+        toCoord: [vLoc?.latitude || 24.86, vLoc?.longitude || 67.0] as [number, number],
         segmentMinutes: road ? road.travelMinutes : 5.0,
       });
     }
@@ -205,12 +216,13 @@ class GridGuardApiService {
       destinationName: destLoc.name,
       path,
       pathNames,
+      coordinates,
       totalTravelMinutes: dist[destinationId] < INF ? dist[destinationId] : 0,
       steps,
     };
   }
 
-  // Get full state of network
+  // Get full state of Karachi network
   public async getNetworkState(): Promise<{
     locations: LocationNode[];
     powerLines: PowerLineEdge[];
@@ -262,7 +274,7 @@ class GridGuardApiService {
     };
   }
 
-  // Section 5: Simulate Power Line Failure (12-step workflow)
+  // Simulate Power Line Failure in Karachi (12-step workflow)
   public async simulatePowerLineFailure(
     lineId: number,
     severity: number = 3,
@@ -288,14 +300,14 @@ class GridGuardApiService {
     // Record pre-failure reachability
     const before = this.recomputePowerReachability();
 
-    // STEP 2: Mark failed
+    // Mark failed
     line.isOperational = false;
     this.simulationClockMinutes += 15;
 
-    // STEP 3: Assign unique fault ID
+    // Assign unique fault ID
     const fId = this.nextFaultId++;
 
-    // STEP 4: Push to undo stack
+    // Push to undo stack
     this.undoStack.push({
       type: 'FAILURE',
       lineId,
@@ -303,10 +315,10 @@ class GridGuardApiService {
       desc: `Simulated failure on Power Line #${lineId}`,
     });
 
-    // STEP 5: Run BFS to find new reachability
+    // Run BFS to find new reachability
     const after = this.recomputePowerReachability();
 
-    // Isolated directly by this line (before connected minus after connected)
+    // Isolated directly by this line
     const newlyIsolated = before.connected.filter((id) => !after.connected.includes(id));
     const isolatedLocs = this.locations.filter((l) => newlyIsolated.includes(l.id));
 
@@ -315,7 +327,7 @@ class GridGuardApiService {
       (l) => l.type === 'HOSPITAL' || l.criticality === 'CRITICAL' || l.criticality === 'HIGH'
     ).length;
 
-    // STEP 8: Calculate priority score
+    // Calculate priority score:
     // Priority Score = (Severity * 10) + (CritFac * 20) + (Pop / 100) + (Duration * 2)
     const priorityScore =
       severity * 10.0 + critAff * 20.0 + popAff / 100.0 + durationMinutes * 2.0;
@@ -331,17 +343,16 @@ class GridGuardApiService {
       status: 'PENDING',
     };
 
-    // STEP 9 & 10: Insert into Heap & Hash Table
+    // Insert into Heap & Hash Table
     this.faults.push(fault);
-    // Keep sorted by priority score descending (mimicking Max-Heap peek)
     this.faults.sort((a, b) => b.priorityScore - a.priorityScore);
 
-    // STEP 11: Add failure event to incident history
+    // Add failure event to incident history
     const fromName = this.locations.find((l) => l.id === line.fromLocationId)?.name || 'Node';
     const toName = this.locations.find((l) => l.id === line.toLocationId)?.name || 'Node';
     this.incidentHistory.unshift({
       eventId: this.nextEventId++,
-      description: `Power Line #${lineId} (${fromName} <---> ${toName}) FAILED. ${newlyIsolated.length} location(s) newly isolated.`,
+      description: `Power Line #${lineId} (${fromName} ↔ ${toName}) FAILED. ${newlyIsolated.length} Karachi location(s) newly isolated.`,
       relatedFaultId: fId,
       eventType: 'FAILURE_DETECTED',
       timestamp: this.getTimeString(),
@@ -350,7 +361,7 @@ class GridGuardApiService {
     return { success: true, fault, message: `Fault #${fId} registered on Line #${lineId}.` };
   }
 
-  // Section 5: Process Repair (10-step workflow)
+  // Process Repair (10-step workflow)
   public async processRepair(
     specificFaultId?: number
   ): Promise<{ success: boolean; repairedFault?: Fault; message: string; route?: DijkstraRoute }> {
@@ -369,7 +380,7 @@ class GridGuardApiService {
 
     const pendingFaults = this.faults.filter((f) => f.status !== 'REPAIRED');
     if (pendingFaults.length === 0) {
-      return { success: false, message: 'No pending faults in repair queue.' };
+      return { success: false, message: 'No pending faults in Karachi repair queue.' };
     }
 
     // Extract highest-priority fault (or specific fault)
@@ -389,21 +400,21 @@ class GridGuardApiService {
 
     this.simulationClockMinutes += 30;
 
-    // STEP 2: Calculate Dijkstra route
+    // Calculate Dijkstra route
     const destination = line.toLocationId;
     const route = this.getDijkstraRoute(destination);
 
-    // STEP 4: Mark in progress
+    // Mark in progress
     faultToRepair.status = 'IN_PROGRESS';
     this.incidentHistory.unshift({
       eventId: this.nextEventId++,
-      description: `Repair crew dispatched to Line #${line.id} via Dijkstra route (${route.totalTravelMinutes.toFixed(1)}m).`,
+      description: `Repair crew dispatched to Line #${line.id} via Karachi road route (${route.totalTravelMinutes.toFixed(1)}m).`,
       relatedFaultId: faultToRepair.faultId,
       eventType: 'REPAIR_STARTED',
       timestamp: this.getTimeString(),
     });
 
-    // STEP 6: Restore line
+    // Restore line
     line.isOperational = true;
     this.undoStack.push({
       type: 'REPAIR',
@@ -412,17 +423,17 @@ class GridGuardApiService {
       desc: `Completed repair of Line #${line.id}`,
     });
 
-    // STEP 7: Recompute BFS
+    // Recompute BFS
     this.recomputePowerReachability();
 
-    // STEP 9: Mark repaired
+    // Mark repaired
     faultToRepair.status = 'REPAIRED';
     this.repairsCompletedCount++;
 
-    // STEP 10: Record incident events
+    // Record incident events
     this.incidentHistory.unshift({
       eventId: this.nextEventId++,
-      description: `Line #${line.id} successfully repaired and re-energized. Power flow normalized.`,
+      description: `Line #${line.id} successfully repaired. Power restored to destination sector.`,
       relatedFaultId: faultToRepair.faultId,
       eventType: 'REPAIR_COMPLETED',
       timestamp: this.getTimeString(),
@@ -436,7 +447,7 @@ class GridGuardApiService {
     };
   }
 
-  // Section 3.F: Undo Last Operation
+  // Undo Last Operation
   public async undoLastOperation(): Promise<{ success: boolean; message: string }> {
     if (this.isLiveBackend) {
       try {
@@ -455,7 +466,6 @@ class GridGuardApiService {
     this.simulationClockMinutes += 5;
 
     if (action.type === 'FAILURE') {
-      // Restore the line
       const line = this.powerLines.find((l) => l.id === action.lineId);
       if (line) line.isOperational = true;
 
@@ -474,7 +484,6 @@ class GridGuardApiService {
 
       return { success: true, message: `Reversed failure of Line #${action.lineId}. Grid re-energized.` };
     } else if (action.type === 'REPAIR') {
-      // Re-disable the line
       const line = this.powerLines.find((l) => l.id === action.lineId);
       if (line) line.isOperational = false;
 
@@ -498,7 +507,6 @@ class GridGuardApiService {
     return { success: false, message: 'Unknown undo action.' };
   }
 
-  // Manual restoration of a specific line
   public async restorePowerLineManually(lineId: number): Promise<{ success: boolean; message: string }> {
     const line = this.powerLines.find((l) => l.id === lineId);
     if (!line) return { success: false, message: `Power line #${lineId} not found.` };
@@ -518,7 +526,6 @@ class GridGuardApiService {
     return { success: true, message: `Line #${lineId} restored to service.` };
   }
 
-  // Reset to initial baseline
   public resetSimulation() {
     this.locations = JSON.parse(JSON.stringify(INITIAL_LOCATIONS));
     this.powerLines = JSON.parse(JSON.stringify(INITIAL_POWER_LINES));
@@ -531,7 +538,7 @@ class GridGuardApiService {
     this.incidentHistory = [
       {
         eventId: 1,
-        description: 'GridGuard Simulation reset to initial baseline network topology.',
+        description: 'GridGuard Karachi Simulation reset to initial baseline network topology.',
         relatedFaultId: -1,
         eventType: 'SYSTEM_INIT',
         timestamp: 'T+00:00',

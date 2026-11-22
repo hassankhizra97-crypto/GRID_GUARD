@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   Activity,
+  MapPin,
   Zap,
   AlertTriangle,
   Wrench,
@@ -26,6 +27,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const navItems = [
     { id: 'overview' as ActivePage, label: 'Overview', icon: Activity },
+    { id: 'map' as ActivePage, label: 'Karachi Map', icon: MapPin },
     { id: 'network' as ActivePage, label: 'Power Network', icon: Zap },
     {
       id: 'faults' as ActivePage,
@@ -39,24 +41,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   return (
-    <aside className="w-64 bg-[#101A2B] border-r border-[#26344A] flex flex-col justify-between h-screen fixed left-0 top-0 z-30 select-none">
+    <aside className="w-64 bg-[#101A2B] border-r border-[#26344A] flex flex-col justify-between h-screen fixed left-0 top-0 z-[10002] select-none">
       <div>
         {/* Brand / Logo */}
         <div className="h-16 px-6 flex items-center gap-3 border-b border-[#26344A]">
-          <div className="w-9 h-9 rounded-lg bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400 shadow-glow-blue">
-            <Zap className="w-5 h-5 fill-blue-400/30 text-blue-400" />
+          <div className="w-9 h-9 rounded-lg bg-emerald-600/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shadow-glow-blue">
+            <Zap className="w-5 h-5 fill-emerald-400/30 text-emerald-400" />
           </div>
           <div>
             <div className="flex items-center gap-1.5">
               <span className="font-extrabold tracking-wider text-base text-[#F1F5F9]">
                 GRIDGUARD
               </span>
-              <span className="text-[10px] font-bold px-1.5 py-0.2 bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded">
-                v2.4
+              <span className="text-[10px] font-bold px-1.5 py-0.2 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded">
+                KARACHI
               </span>
             </div>
             <p className="text-[10px] text-[#94A3B8] tracking-tight uppercase">
-              Grid Fault & Restoration
+              Karachi Power Grid Simulator
             </p>
           </div>
         </div>

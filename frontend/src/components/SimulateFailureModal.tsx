@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, AlertTriangle, Zap, Clock, ShieldAlert } from 'lucide-react';
 import { PowerLineEdge, LocationNode } from '../types';
 
@@ -7,6 +7,7 @@ interface SimulateFailureModalProps {
   onClose: () => void;
   powerLines: PowerLineEdge[];
   locations: LocationNode[];
+  initialLineId?: number;
   onConfirm: (lineId: number, severity: number, durationMinutes: number) => void;
 }
 
@@ -15,19 +16,36 @@ export const SimulateFailureModal: React.FC<SimulateFailureModalProps> = ({
   onClose,
   powerLines,
   locations,
+  initialLineId,
   onConfirm,
 }) => {
-  const [selectedLineId, setSelectedLineId] = useState<number>(17); // Default to Oakridge non-redundant line
+  const operationalLines = powerLines.filter((l) => l.isOperational);
+  const [selectedLineId, setSelectedLineId] = useState<number>(() => {
+    if (initialLineId && operationalLines.some((l) => l.id === initialLineId)) {
+      return initialLineId;
+    }
+    return operationalLines.length > 0 ? operationalLines[0].id : 1;
+  });
   const [severity, setSeverity] = useState<number>(3);
   const [duration, setDuration] = useState<number>(60);
+
+  useEffect(() => {
+    if (isOpen) {
+      if (initialLineId && operationalLines.some((l) => l.id === initialLineId)) {
+        setSelectedLineId(initialLineId);
+      } else if (operationalLines.length > 0) {
+        if (!operationalLines.some((l) => l.id === selectedLineId)) {
+          setSelectedLineId(operationalLines[0].id);
+        }
+      }
+    }
+  }, [isOpen, initialLineId, operationalLines, selectedLineId]);
 
   if (!isOpen) return null;
 
   const getLocationName = (id: number) => {
     return locations.find((l) => l.id === id)?.name || `Location ${id}`;
   };
-
-  const operationalLines = powerLines.filter((l) => l.isOperational);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,7 +56,12 @@ export const SimulateFailureModal: React.FC<SimulateFailureModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      className="fixed inset-y-0 right-0 left-0 md:left-64 z-[10000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+    >
       <div className="bg-[#151F32] border border-[#26344A] rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         {/* Modal Header */}
         <div className="px-6 py-4 bg-[#101A2B] border-b border-[#26344A] flex items-center justify-between">

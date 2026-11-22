@@ -29,7 +29,7 @@ void printMainMenu() {
     std::cout << "\n";
     std::cout << "========================================================================================\n";
     std::cout << "                                     GRIDGUARD                                          \n";
-    std::cout << "             Intelligent Power Grid Fault Detection & Restoration Simulator             \n";
+    std::cout << "             Karachi Power Grid Fault Detection & Restoration Simulator                 \n";
     std::cout << "========================================================================================\n";
     std::cout << " 1. Display Power Network                  11. Search Fault Record by ID\n";
     std::cout << " 2. View All Locations                     12. Sort Fault Records\n";
@@ -58,7 +58,7 @@ int main(int argc, char* argv[]) {
     Simulation sim;
     bool running = true;
 
-    std::cout << "\n>>> GridGuard System Initialized Successfully with City Network Data <<<\n";
+    std::cout << "\n>>> GridGuard Karachi Power Grid Initialized with 44 Municipal Locations <<<\n";
 
     while (running) {
         printMainMenu();
@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
                 break;
             case 3: {
                 std::cout << "\n--- Simulate Power Line Failure ---\n";
-                int lineId = getValidInt("Enter Power Line ID to fail (1-18): ", 1, 18);
+                int lineId = getValidInt("Enter Power Line ID to fail (1-61): ", 1, 61);
                 int severity = getValidInt("Enter Fault Severity (1 = Minor to 5 = Catastrophic): ", 1, 5);
                 int duration = getValidInt("Enter Estimated Outage Duration in minutes (15-600): ", 15, 600);
                 sim.simulatePowerLineFailure(lineId, severity, duration);
@@ -103,7 +103,7 @@ int main(int argc, char* argv[]) {
             }
             case 8: {
                 std::cout << "\n--- Find Repair Crew Route (Dijkstra's Road Algorithm) ---\n";
-                int target = getValidInt("Enter Destination Location ID (1-14): ", 1, 14);
+                int target = getValidInt("Enter Destination Location ID (1-44): ", 1, 44);
                 sim.findRepairCrewRoute(target);
                 break;
             }
@@ -111,7 +111,7 @@ int main(int argc, char* argv[]) {
                 sim.displayAllFaults();
                 break;
             case 10: {
-                int locId = getValidInt("Enter Location ID to search (1-14): ", 1, 14);
+                int locId = getValidInt("Enter Location ID to search (1-44): ", 1, 44);
                 sim.searchLocationById(locId);
                 break;
             }
@@ -146,13 +146,13 @@ int main(int argc, char* argv[]) {
                 break;
             case 16: {
                 std::cout << "\n--- Run BFS Traversal (Custom Queue) ---\n";
-                int startId = getValidInt("Enter Start Location ID (Default 1 for Main Station): ", 1, 14);
+                int startId = getValidInt("Enter Start Location ID (Default 1 for Central Supply Hub): ", 1, 44);
                 sim.runBFSTraversal(startId);
                 break;
             }
             case 17: {
                 std::cout << "\n--- Run DFS Traversal (Recursive Graph Exploration) ---\n";
-                int startId = getValidInt("Enter Start Location ID (Default 1 for Main Station): ", 1, 14);
+                int startId = getValidInt("Enter Start Location ID (Default 1 for Central Supply Hub): ", 1, 44);
                 sim.runDFSTraversal(startId);
                 break;
             }
@@ -160,7 +160,7 @@ int main(int argc, char* argv[]) {
                 sim.analyzeAndDisplayConnectivity();
                 break;
             case 19: {
-                int lineId = getValidInt("Enter Power Line ID to restore directly (1-18): ", 1, 18);
+                int lineId = getValidInt("Enter Power Line ID to restore directly (1-61): ", 1, 61);
                 sim.restorePowerLineDirectly(lineId);
                 break;
             }

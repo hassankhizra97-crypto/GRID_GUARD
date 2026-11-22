@@ -32,7 +32,9 @@ export const Header: React.FC<HeaderProps> = ({
   const getPageInfo = (): { title: string; breadcrumb: string } => {
     switch (activePage) {
       case 'overview':
-        return { title: 'Grid Operations Overview', breadcrumb: 'Dashboard / Overview' };
+        return { title: 'Karachi Grid Operations Overview', breadcrumb: 'Dashboard / Overview' };
+      case 'map':
+        return { title: 'Karachi Geographical Power Grid Map', breadcrumb: 'GIS / Karachi Interactive Map' };
       case 'network':
         return { title: 'Interactive Power Transmission Network', breadcrumb: 'Topology / Graph Analysis' };
       case 'faults':
@@ -51,7 +53,7 @@ export const Header: React.FC<HeaderProps> = ({
   const { title, breadcrumb } = getPageInfo();
 
   return (
-    <header className="h-16 bg-[#101A2B]/90 backdrop-blur-md border-b border-[#26344A] sticky top-0 z-20 px-8 flex items-center justify-between">
+    <header className="h-16 bg-[#101A2B]/90 backdrop-blur-md border-b border-[#26344A] sticky top-0 z-[10001] px-8 flex items-center justify-between">
       {/* Title & Breadcrumbs */}
       <div>
         <div className="text-[11px] font-medium text-[#94A3B8] tracking-wider uppercase flex items-center gap-1.5">

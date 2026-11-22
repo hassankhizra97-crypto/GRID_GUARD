@@ -24,7 +24,7 @@ struct AdjEdgeNode {
 // Power Grid Graph Representation
 class Graph {
 private:
-    static const int MAX_VERTICES = 64;
+    static const int MAX_VERTICES = 128;
 
     Location locations[MAX_VERTICES];
     bool locationExists[MAX_VERTICES];
