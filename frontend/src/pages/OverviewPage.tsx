@@ -65,7 +65,35 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
     { name: 'Operational Lines', value: stats.operationalLines, color: '#22C55E' },
     { name: 'Failed Lines', value: stats.failedLines, color: '#EF4444' },
     { name: 'Under Maintenance', value: faults.filter((f) => f.status === 'IN_PROGRESS').length, color: '#3B82F6' },
-  ];
+  ].filter((d) => d.value > 0); // hide zero-value slices so labels don't overlap
+
+  // Custom label renderer — shows the numeric count outside each slice
+  const renderPieLabel = ({
+    cx, cy, midAngle, outerRadius, value, name,
+  }: {
+    cx: number; cy: number; midAngle: number; outerRadius: number; value: number; name: string;
+  }) => {
+    if (value === 0) return null;
+    const RADIAN = Math.PI / 180;
+    const radius = outerRadius + 22;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+    // Short label text
+    const short = name === 'Operational Lines' ? 'OK' : name === 'Failed Lines' ? 'Fail' : 'Maint';
+    return (
+      <text
+        x={x}
+        y={y}
+        fill="#F1F5F9"
+        textAnchor={x > cx ? 'start' : 'end'}
+        dominantBaseline="central"
+        fontSize={11}
+        fontWeight={600}
+      >
+        {value} <tspan fill="#94A3B8" fontSize={10}>{short}</tspan>
+      </text>
+    );
+  };
 
   // Activity chart data
   const activityData = [
@@ -196,7 +224,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
           title="Network Health Distribution"
           subtitle="Real-time transmission line status breakdown"
         >
-          <div className="w-full h-64 flex items-center justify-center">
+          <div className="relative w-full h-64 flex items-center justify-center">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -207,10 +235,13 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
                   outerRadius={85}
                   paddingAngle={5}
                   dataKey="value"
+                  labelLine={false}
+                  label={renderPieLabel}
                 >
                   {networkDistributionData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} stroke="#151F32" strokeWidth={2} />
                   ))}
+                  {/* Center total */}
                 </Pie>
                 <Tooltip
                   contentStyle={{
@@ -220,14 +251,24 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
                     color: '#F1F5F9',
                     fontSize: '12px',
                   }}
+                  formatter={(value: number, name: string) => [`${value} lines`, name]}
                 />
                 <Legend
                   verticalAlign="bottom"
                   iconType="circle"
-                  wrapperStyle={{ fontSize: '11px', paddingTop: '10px', color: '#94A3B8' }}
+                  formatter={(value) => <span style={{ color: '#94A3B8', fontSize: '11px' }}>{value}</span>}
+                  wrapperStyle={{ paddingTop: '10px' }}
                 />
               </PieChart>
             </ResponsiveContainer>
+            {/* Centred total overlay */}
+            <div
+              className="absolute flex flex-col items-center justify-center pointer-events-none"
+              style={{ width: 120, height: 120 }}
+            >
+              <span className="text-2xl font-bold text-white">{stats.totalLines}</span>
+              <span className="text-[10px] text-slate-400 uppercase tracking-widest">Total Lines</span>
+            </div>
           </div>
         </ChartCard>
 
