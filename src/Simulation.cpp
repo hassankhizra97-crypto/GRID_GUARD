@@ -3,6 +3,8 @@
 #include "../include/ArrayStack.h"
 #include <iostream>
 #include <iomanip>
+#include <cmath>
+#include <algorithm>
 #include <sstream>
 
 Simulation::Simulation()
@@ -1009,4 +1011,205 @@ void Simulation::displayCriticalFacilitiesStatus() const {
         }
     }
     std::cout << "========================================================================================\n";
+}
+
+// ============================================================
+// JSON SERIALIZATION METHODS FOR HTTP BACKEND INTEGRATION
+// ============================================================
+// JSON SERIALIZATION METHODS FOR HTTP BACKEND INTEGRATION
+// ============================================================
+
+std::string Simulation::jsonEscape(const std::string& s) {
+    std::string out;
+    out.reserve(s.size() + 2);
+    for (char c : s) {
+        switch (c) {
+            case '"':  out += "\\\""; break;
+            case '\\': out += "\\\\"; break;
+            case '\b': out += "\\b"; break;
+            case '\f': out += "\\f"; break;
+            case '\n': out += "\\n"; break;
+            case '\r': out += "\\r"; break;
+            case '\t': out += "\\t"; break;
+            default:
+                if (static_cast<unsigned char>(c) < 0x20) {
+                    char buf[8];
+                    snprintf(buf, sizeof(buf), "\\u%04x", c);
+                    out += buf;
+                } else {
+                    out += c;
+                }
+        }
+    }
+    return out;
+}
+
+std::string Simulation::toJsonLocation(const Location& loc) const {
+    std::ostringstream oss;
+    oss << "{";
+    oss << "\"id\":" << loc.id << ",";
+    oss << "\"name\":\"" << jsonEscape(loc.name) << "\",";
+    oss << "\"type\":\"" << loc.getTypeString() << "\",";
+    oss << "\"population\":" << loc.population << ",";
+    oss << "\"criticality\":\"" << loc.getCriticalityString() << "\",";
+    oss << "\"isPowered\":" << (loc.isPowered ? "true" : "false") << ",";
+    oss << "\"latitude\":" << loc.latitude << ",";
+    oss << "\"longitude\":" << loc.longitude << ",";
+    oss << "\"area\":\"" << jsonEscape(loc.area) << "\"";
+    oss << "}";
+    return oss.str();
+}
+
+std::string Simulation::toJsonPowerLine(const PowerLine& pl) const {
+    std::ostringstream oss;
+    oss << "{";
+    oss << "\"id\":" << pl.id << ",";
+    oss << "\"fromLocationId\":" << pl.fromLocationId << ",";
+    oss << "\"toLocationId\":" << pl.toLocationId << ",";
+    oss << "\"isOperational\":" << (pl.isOperational ? "true" : "false") << ",";
+    oss << "\"repairCost\":" << pl.repairCost << ",";
+    oss << "\"travelCost\":" << pl.travelCost;
+    oss << "}";
+    return oss.str();
+}
+
+std::string Simulation::toJsonFault(const Fault& f) const {
+    std::ostringstream oss;
+    oss << "{";
+    oss << "\"faultId\":" << f.faultId << ",";
+    oss << "\"powerLineId\":" << f.powerLineId << ",";
+    oss << "\"severity\":" << f.severity << ",";
+    oss << "\"criticalFacilitiesAffected\":" << f.criticalFacilitiesAffected << ",";
+    oss << "\"populationAffected\":" << f.populationAffected << ",";
+    oss << "\"outageDuration\":" << f.outageDuration << ",";
+    oss << "\"priorityScore\":" << f.priorityScore << ",";
+    oss << "\"status\":\"" << f.getStatusString() << "\"";
+    oss << "}";
+    return oss.str();
+}
+
+std::string Simulation::toJsonIncidentEvent(const IncidentEvent& ev) const {
+    std::ostringstream oss;
+    oss << "{";
+    oss << "\"eventId\":" << ev.eventId << ",";
+    oss << "\"description\":\"" << jsonEscape(ev.description) << "\",";
+    oss << "\"relatedFaultId\":" << ev.relatedFaultId << ",";
+    oss << "\"eventType\":\"" << jsonEscape(ev.eventType) << "\",";
+    oss << "\"timestamp\":\"" << jsonEscape(ev.timestamp) << "\"";
+    oss << "}";
+    return oss.str();
+}
+
+std::string Simulation::exportLocationsJSON() const {
+    std::ostringstream oss;
+    oss << "[";
+    bool first = true;
+    locationTable.forEach([&](int key, const Location& loc) {
+        if (!first) oss << ",";
+        first = false;
+        oss << toJsonLocation(loc);
+    });
+    oss << "]";
+    return oss.str();
+}
+
+std::string Simulation::exportPowerLinesJSON() const {
+    const CustomVector<PowerLine>& lines = powerGrid.getAllPowerLines();
+    std::ostringstream oss;
+    oss << "[";
+    for (size_t i = 0; i < lines.size(); ++i) {
+        if (i > 0) oss << ",";
+        oss << toJsonPowerLine(lines[i]);
+    }
+    oss << "]";
+    return oss.str();
+}
+
+std::string Simulation::exportFaultsJSON() const {
+    std::ostringstream oss;
+    oss << "[";
+    bool first = true;
+    faultTable.forEach([&](int key, const Fault& f) {
+        if (!first) oss << ",";
+        first = false;
+        oss << toJsonFault(f);
+    });
+    oss << "]";
+    return oss.str();
+}
+
+std::string Simulation::exportIncidentHistoryJSON() const {
+    std::ostringstream oss;
+    oss << "[";
+    bool first = true;
+    incidentHistory.forEach([&](const IncidentEvent& ev) {
+        if (!first) oss << ",";
+        first = false;
+        oss << toJsonIncidentEvent(ev);
+    });
+    oss << "]";
+    return oss.str();
+}
+
+std::string Simulation::exportStatsJSON() const {
+    CustomVector<int> connected, disconnected;
+    powerGrid.analyzeConnectivity(mainPowerStationId, connected, disconnected);
+
+    int operationalLines = 0;
+    int failedLines = 0;
+    const CustomVector<PowerLine>& allLines = powerGrid.getAllPowerLines();
+    for (size_t i = 0; i < allLines.size(); ++i) {
+        if (allLines[i].isOperational) operationalLines++;
+        else failedLines++;
+    }
+
+    int activeFaults = 0;
+    faultTable.forEach([&](int key, const Fault& f) {
+        if (f.status != REPAIRED) activeFaults++;
+    });
+
+    int affectedPopulation = 0;
+    int criticalFacilitiesAffected = 0;
+    for (size_t i = 0; i < disconnected.size(); ++i) {
+        const Location* loc = powerGrid.getLocation(disconnected[i]);
+        if (loc) {
+            affectedPopulation += loc->population;
+            if (loc->isCriticalFacility()) criticalFacilitiesAffected++;
+        }
+    }
+
+    int totalLines = powerGrid.getPowerLineCount();
+    int totalLocations = powerGrid.getLocationCount();
+    double healthPct = 0.0;
+    if (totalLines > 0) {
+        healthPct = (static_cast<double>(operationalLines) / totalLines) * 0.7 * 100.0 +
+                    (static_cast<double>(connected.size()) / totalLocations) * 0.3 * 100.0;
+    }
+
+    std::ostringstream oss;
+    oss << std::fixed << std::setprecision(0);
+    oss << "{";
+    oss << "\"totalLocations\":" << totalLocations << ",";
+    oss << "\"operationalLines\":" << operationalLines << ",";
+    oss << "\"failedLines\":" << failedLines << ",";
+    oss << "\"totalLines\":" << totalLines << ",";
+    oss << "\"activeFaults\":" << activeFaults << ",";
+    oss << "\"affectedPopulation\":" << affectedPopulation << ",";
+    oss << "\"criticalFacilitiesAffected\":" << criticalFacilitiesAffected << ",";
+    oss << "\"repairsCompleted\":" << (simulationTimeMinutes / 30) << ",";
+    oss << "\"networkHealthPercentage\":" << std::round(healthPct);
+    oss << "}";
+    return oss.str();
+}
+
+std::string Simulation::exportNetworkStateJSON() const {
+    std::ostringstream oss;
+    oss << "{";
+    oss << "\"locations\":" << exportLocationsJSON() << ",";
+    oss << "\"powerLines\":" << exportPowerLinesJSON() << ",";
+    oss << "\"faults\":" << exportFaultsJSON() << ",";
+    oss << "\"incidentHistory\":" << exportIncidentHistoryJSON() << ",";
+    oss << "\"stats\":" << exportStatsJSON();
+    oss << "}";
+    return oss.str();
 }

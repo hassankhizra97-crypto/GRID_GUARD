@@ -13,6 +13,8 @@
 #include "CircularQueue.h"
 #include "ArrayStack.h"
 #include <string>
+#include <sstream>
+#include <vector>
 
 class Simulation {
 private:
@@ -106,6 +108,22 @@ public:
     const MaxHeap& getRepairQueue() const { return repairQueue; }
     const HashTable<int, Fault>& getFaultTable() const { return faultTable; }
     const DoublyLinkedList<IncidentEvent>& getIncidentHistory() const { return incidentHistory; }
+
+    // JSON serialization for HTTP backend integration
+    std::string toJsonLocation(const Location& loc) const;
+    std::string toJsonPowerLine(const PowerLine& pl) const;
+    std::string toJsonFault(const Fault& f) const;
+    std::string toJsonIncidentEvent(const IncidentEvent& ev) const;
+
+    std::string exportLocationsJSON() const;
+    std::string exportPowerLinesJSON() const;
+    std::string exportFaultsJSON() const;
+    std::string exportIncidentHistoryJSON() const;
+    std::string exportNetworkStateJSON() const;
+    std::string exportStatsJSON() const;
+
+    // JSON escaping helper
+    static std::string jsonEscape(const std::string& s);
 };
 
 #endif // SIMULATION_H

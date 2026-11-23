@@ -156,6 +156,16 @@ public:
         std::cout << "========================================================================================\n";
     }
 
+    // Iterate over all entries from head to tail (for JSON export / server integration)
+    template <typename Visitor>
+    void forEach(Visitor visit) const {
+        DNode* curr = head;
+        while (curr != nullptr) {
+            visit(curr->data);
+            curr = curr->next;
+        }
+    }
+
     // Search events containing a keyword in their description or type
     void searchEvents(const std::string& keyword) const {
         if (isEmpty()) {

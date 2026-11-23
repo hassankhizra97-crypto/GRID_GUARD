@@ -218,6 +218,18 @@ public:
         collisionCount = 0;
     }
 
+    // Iterate over all entries (for JSON export / server integration)
+    template <typename Visitor>
+    void forEach(Visitor visit) const {
+        for (int i = 0; i < capacity; ++i) {
+            HashNode* curr = buckets[i];
+            while (curr != nullptr) {
+                visit(curr->key, curr->value);
+                curr = curr->next;
+            }
+        }
+    }
+
     // Diagnostics to display collision distribution across buckets
     void displayBucketDiagnostics() const {
         std::cout << "HashTable Diagnostics (Capacity: " << capacity

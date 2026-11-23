@@ -13,11 +13,15 @@ import {
 } from '../data/initialData';
 
 // Centralized API Service for GridGuard Karachi Power Grid
-// Connects to live C++ HTTP endpoint if active, with full high-fidelity fallback
-// matching the exact data model and behavior of GridGuard C++ DSA engine.
+// Connects to live C++ HTTP endpoint via Vite dev-server proxy (/api → localhost:8081)
+// or directly in production (window.location.origin/api).
+// Falls back gracefully to a local high-fidelity JS simulation when backend is offline.
 
 class GridGuardApiService {
-  private apiBaseUrl: string = 'http://localhost:8080/api';
+  // Use a relative URL so the Vite proxy forwards requests to the C++ backend.
+  // In production (after `npm run build`) the backend must serve the static files
+  // at the same origin, so /api still resolves correctly.
+  private apiBaseUrl: string = '/api';
   private isLiveBackend: boolean = false;
 
   // Local synchronized state mirror
