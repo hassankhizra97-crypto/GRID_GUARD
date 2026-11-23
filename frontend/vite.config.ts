@@ -11,6 +11,7 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react()],
     server: {
+      host: '0.0.0.0',
       port: 5173,
       // Proxy /api requests to the C++ backend
       proxy: {
@@ -20,7 +21,11 @@ export default defineConfig(({ mode }) => {
           secure: false,
         },
       },
-      allowedHosts,
+      allowedHosts:[
+        'localhost',
+        '127.0.0.1',
+        'evergreen-vista-upwind.ngrok-free.dev'
+      ],
     },
   }
 })
