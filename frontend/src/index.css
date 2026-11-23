@@ -112,3 +112,39 @@
   animation: markerPulse 1.8s infinite;
   border-radius: 50%;
 }
+
+/* Recharts Dark Theme Fixes - prevent legend text from defaulting to black */
+.recharts-default-legend {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 12px !important;
+}
+
+.recharts-legend-item {
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+.recharts-legend-item-text {
+  color: #CBD5E1 !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  margin-left: 4px !important;
+}
+
+.recharts-legend-wrapper {
+  color: #CBD5E1 !important;
+}
+
+.recharts-legend-wrapper span {
+  color: #CBD5E1 !important;
+}
+
+/* SVG text elements inside charts */
+.recharts-text,
+.recharts-cartesian-axis-tick-value {
+  fill: #94A3B8 !important;
+}
+

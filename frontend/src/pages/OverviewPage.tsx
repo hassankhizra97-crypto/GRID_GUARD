@@ -255,9 +255,25 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
                 />
                 <Legend
                   verticalAlign="bottom"
-                  iconType="circle"
-                  formatter={(value) => <span style={{ color: '#94A3B8', fontSize: '11px' }}>{value}</span>}
-                  wrapperStyle={{ paddingTop: '10px' }}
+                  content={(props) => {
+                    const { payload } = props;
+                    if (!payload) return null;
+                    return (
+                      <div className="flex items-center justify-center gap-4 pt-3 flex-wrap">
+                        {payload.map((entry: any, index: number) => (
+                          <div key={`legend-pie-${index}`} className="flex items-center gap-1.5">
+                            <span
+                              className="w-2.5 h-2.5 rounded-full inline-block shrink-0 shadow-sm"
+                              style={{ backgroundColor: entry.color }}
+                            />
+                            <span className="text-[#CBD5E1] text-[11px] font-medium leading-none select-none">
+                              {entry.value}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  }}
                 />
               </PieChart>
             </ResponsiveContainer>
@@ -292,7 +308,27 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
                     fontSize: '12px',
                   }}
                 />
-                <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
+                <Legend
+                  content={(props) => {
+                    const { payload } = props;
+                    if (!payload) return null;
+                    return (
+                      <div className="flex items-center justify-center gap-4 pt-2 flex-wrap">
+                        {payload.map((entry: any, index: number) => (
+                          <div key={`legend-bar-${index}`} className="flex items-center gap-1.5">
+                            <span
+                              className="w-2.5 h-2.5 rounded-sm inline-block shrink-0 shadow-sm"
+                              style={{ backgroundColor: entry.color }}
+                            />
+                            <span className="text-[#CBD5E1] text-[11px] font-medium leading-none select-none">
+                              {entry.value}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  }}
+                />
                 <Bar dataKey="faults" name="Faults Detected" fill="#EF4444" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="repairs" name="Repairs Done" fill="#22C55E" radius={[4, 4, 0, 0]} />
               </BarChart>
