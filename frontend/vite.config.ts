@@ -1,20 +1,26 @@
 import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 
 // https://vite.dev/config/
-export default defineConfig({
-  plugins: [react()],
-  server: {
-    port: 5173,
-    // Proxy all /api requests to the C++ backend so the browser
-    // never has to deal with CORS — both servers look like same origin.
-    proxy: {
-      '/api': {
-        target: 'http://localhost:8081',
-        changeOrigin: true,
-        secure: false,
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, '.', '')
+  const allowedHosts = env.ALLOWED_HOSTS
+    ? env.ALLOWED_HOSTS.split(',').map((h) => h.trim())
+    : ['localhost', '127.0.0.1']
+
+  return {
+    plugins: [react()],
+    server: {
+      port: 5173,
+      // Proxy /api requests to the C++ backend
+      proxy: {
+        '/api': {
+          target: env.BACKEND_URL || 'http://localhost:8081',
+          changeOrigin: true,
+          secure: false,
+        },
       },
+      allowedHosts,
     },
-    allowedHosts: ['evergreen-vista-upwind.ngrok-free.dev', 'localhost'],
-  },
+  }
 })
